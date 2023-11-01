@@ -45,7 +45,8 @@ The ```sudo``` is there to give you the required permissions to install into you
 - Build DACE, e.g.
   ```
   mkdir build && cd build
-  cmake .. -DWITH_JULIA=ON -DWITH_PTHREAD=ON -DWITH_ALGEBRAICMATRIX=ON -DCMAKE_BUILD_TYPE=RELWITHDEBINFO \
+  cmake .. -DWITH_JULIA=ON -DWITH_PTHREAD=ON -DWITH_ALGEBRAICMATRIX=ON \
+      -DCMAKE_BUILD_TYPE=RELWITHDEBINFO \
       -DCMAKE_PREFIX_PATH=<prefix_path_output_from_above_step>
   make
   ```

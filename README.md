@@ -34,6 +34,31 @@ sudo make install
 ```
 The ```sudo``` is there to give you the required permissions to install into your system directories (usually ```/usr/local```).
 
+## Building the Julia interface
+
+- [Install CxxWrap.jl](https://github.com/JuliaInterop/CxxWrap.jl)
+- Locate the prefix path, e.g.
+  ```
+  julia> using CxxWrap
+  julia> CxxWrap.prefix_path()
+  ```
+- Build DACE, e.g.
+  ```
+  mkdir build && cd build
+  cmake .. -DWITH_JULIA=ON -DWITH_PTHREAD=ON -DWITH_ALGEBRAICMATRIX=ON -DCMAKE_BUILD_TYPE=RELWITHDEBINFO \
+      -DCMAKE_PREFIX_PATH=<prefix_path_output_from_above_step>
+  make
+  ```
+- Demo (run from build dir):
+  ```  
+  module DACE
+      using CxxWrap
+      @wrapmodule(() -> "interfaces/cxx/libdace.so", :define_julia_module)
+  end
+
+  println(DACE.greet())
+  ```
+
 ## Running the Tutorials
 To test if your installation was successful, you can try to build one of the Tutorials:
 ```

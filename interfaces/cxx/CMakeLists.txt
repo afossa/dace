@@ -15,7 +15,12 @@ if(WIN32)
 endif(WIN32)
 
 # statically and dynamically linked C++ interface library with the corresponding c core object files compiled in
-add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx>)
+if (WITH_JULIA)
+    add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx> $<TARGET_OBJECTS:dacejulia>)
+    target_link_libraries(dace PUBLIC JlCxx::cxxwrap_julia)
+else()
+    add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx>)
+endif()
 add_library(dace_s STATIC $<TARGET_OBJECTS:c_core_s> $<TARGET_OBJECTS:c_core_contrib_s> $<TARGET_OBJECTS:dacecxx_s>)
 
 target_include_directories(dace INTERFACE $<INSTALL_INTERFACE:include>)

@@ -36,7 +36,7 @@ The ```sudo``` is there to give you the required permissions to install into you
 
 ## Building the Julia interface
 
-- [Install CxxWrap.jl](https://github.com/JuliaInterop/CxxWrap.jl)
+- [Install CxxWrap.jl](https://github.com/JuliaInterop/CxxWrap.jl#installation)
 - Locate the prefix path, e.g.
   ```
   julia> using CxxWrap

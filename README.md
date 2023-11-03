@@ -51,13 +51,26 @@ The ```sudo``` is there to give you the required permissions to install into you
   make
   ```
 - Demo (run from build dir):
-  ```  
+  ```julia
   module DACE
       using CxxWrap
       @wrapmodule(() -> "interfaces/cxx/libdace.so", :define_julia_module)
   end
 
-  println(DACE.greet())
+  # initialise DACE for 20th-order computations in 1 variable
+  DACE.init(10, 1)
+
+  # initialise x as DA
+  x = DACE.DA(1)
+
+  # compute y = sin(x)
+  y = sin(x)
+
+  # print x and y to screen
+  println("x")
+  print(x)
+  println("y = sin(x)")
+  print(y)
   ```
 
 ## Running the Tutorials

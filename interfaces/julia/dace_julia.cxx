@@ -60,9 +60,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
         wrapped.template constructor<const size_t>();
 
-        wrapped.method("sin", [](const WrappedT& avec) { return sin(avec); });
-        wrapped.method("cos", [](const WrappedT& avec) { return cos(avec); });
-        wrapped.method("tan", [](const WrappedT& avec) { return tan(avec); });
+        //wrapped.method("sin", [](const WrappedT& avec) { return sin(avec); });
+        //wrapped.method("cos", [](const WrappedT& avec) { return cos(avec); });
+        //wrapped.method("tan", [](const WrappedT& avec) { return tan(avec); });
 
         // add methods to Base
         wrapped.module().set_override_module(jl_base_module);
@@ -74,6 +74,12 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         wrapped.module().method("setindex!", [](WrappedT& avec, const ScalarT& v, const int i) { avec[i-1] = v; });
         wrapped.module().method("firstindex", [](const WrappedT& avec) { return 1; });  // TODO: do we want to index from 1?
         wrapped.module().method("lastindex", [](const WrappedT& avec) { return avec.size(); });  // TODO: do we want to index from 1?
+        // maths functions
+        wrapped.module().method("sin", [](const WrappedT& avec) { return sin(avec); });
+        wrapped.module().method("cos", [](const WrappedT& avec) { return cos(avec); });
+        wrapped.module().method("tan", [](const WrappedT& avec) { return tan(avec); });
+        // operators
+        // TODO: ...
         // stop adding methods to base
         wrapped.module().unset_override_module();
     });

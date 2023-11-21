@@ -39,7 +39,6 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .method("getCoefficient", &DA::getCoefficient)
         .method("multiplyMonomials", &DA::multiplyMonomials)
         .method("sqr", &DA::sqr)
-        .method("sqrt", &DA::sqrt)
         .method("toString", &DA::toString);
 
     // TODO: add finaliser(s)??? is it necessary?
@@ -80,11 +79,11 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("asinh", [](const DA& da) { return da.asinh(); });
     mod.method("acosh", [](const DA& da) { return da.acosh(); });
     mod.method("atanh", [](const DA& da) { return da.atanh(); });
-    mod.method("exp", [](const DA& da) { return exp(da); });
+    mod.method("exp", [](const DA& da) { return da.exp(); });
     mod.method("log", [](const DA& da) { return da.log(); });
     mod.method("log10", [](const DA& da) { return da.log10(); });
     mod.method("log2", [](const DA& da) { return da.log2(); });
-    mod.method("sqrt", [](const DA& da) { return sqrt(da); });
+    mod.method("sqrt", [](const DA& da) { return da.sqrt(); });
     // displaying
 //    mod.method("show", )  // TODO: how to do show (then don't need print/println below)
     mod.method("print", [](DA& da) { std::cout << da.toString(); });
@@ -128,6 +127,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("trim", [](const AlgebraicVector<DA>& da, const unsigned int min, const unsigned int max) { return da.trim(min, max); });
 
     mod.method("gradient", [](const DA& da)->AlgebraicVector<DA> { return da.gradient(); });
+    mod.method("deriv", [](const AlgebraicVector<DA>& vec, const unsigned int p)->AlgebraicVector<DA> { return vec.deriv(p); });
 
 
     // adding compiledDA

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <jlcxx/jlcxx.hpp>
 #include <jlcxx/stl.hpp>
+#include <jlcxx/tuple.hpp>
 #include <dace/dace.h>
 
 
@@ -93,27 +94,26 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
 
     // adding AlgebraicVector
-    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicVector")
+    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicVector", jlcxx::julia_type("AbstractVector", "Base"))
             .apply<AlgebraicVector<DA>, AlgebraicVector<double>>([](auto wrapped) {
         typedef typename decltype(wrapped)::type WrappedT;
         typedef typename WrappedT::value_type ScalarT;  // AlgebraicVector inherits from std::vector which sets value_type
 
         wrapped.template constructor<const size_t>();
 
-        //wrapped.method("sin", [](const WrappedT& avec) { return sin(avec); });
-        //wrapped.method("cos", [](const WrappedT& avec) { return cos(avec); });
-        //wrapped.method("tan", [](const WrappedT& avec) { return tan(avec); });
+        wrapped.method("sqr", [](const WrappedT& avec) { return avec.sqr(); });
 
         // add methods to Base
         wrapped.module().set_override_module(jl_base_module);
         // TODO: add show instead of print(ln)
         wrapped.module().method("print", [](const WrappedT& avec) { std::cout << avec; });
         wrapped.module().method("println", [](const WrappedT& avec) { std::cout << avec; });
-        // implementing the indexing interface
-        wrapped.module().method("getindex", [](const WrappedT& avec, const int i) { return avec[i-1]; });
-        wrapped.module().method("setindex!", [](WrappedT& avec, const ScalarT& v, const int i) { avec[i-1] = v; });
-        wrapped.module().method("firstindex", [](const WrappedT& avec) { return 1; });  // TODO: do we want to index from 1?
-        wrapped.module().method("lastindex", [](const WrappedT& avec) { return avec.size(); });  // TODO: do we want to index from 1?
+        // implementing the AbstractArray interface
+        wrapped.module().method("size", [](const WrappedT& avec) { return std::make_tuple(avec.size()); });
+        wrapped.module().method("getindex", [](const WrappedT& avec, const int i) { return avec.at(i-1); });
+        wrapped.module().method("setindex!", [](WrappedT& avec, const ScalarT& v, const int i) { avec.at(i-1) = v; });
+        wrapped.module().method("firstindex", [](const WrappedT& avec) { return 1; });
+        wrapped.module().method("lastindex", [](const WrappedT& avec) { return avec.size(); });
         // maths functions
         wrapped.module().method("sin", [](const WrappedT& avec) { return sin(avec); });
         wrapped.module().method("cos", [](const WrappedT& avec) { return cos(avec); });

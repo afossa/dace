@@ -34,8 +34,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     // add the DA object
     mod.add_type<DA>("DA")
         .constructor<>()
-        .constructor<const double>()
-        .constructor<const unsigned int, const double>()
+        .constructor([](const jlcxx::StrictlyTypedNumber<double> c) { return new DA(c.value); })
+        .constructor([](const jlcxx::StrictlyTypedNumber<int32_t> i) { return new DA(static_cast<int>(i.value), 1.0); })
+        .constructor([](const jlcxx::StrictlyTypedNumber<int64_t> i) { return new DA(static_cast<int>(i.value), 1.0); })
         .constructor<const int, const double>()
         .method("getCoefficient", &DA::getCoefficient)
         .method("multiplyMonomials", &DA::multiplyMonomials)
@@ -49,6 +50,22 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("deriv", [](const DA& da, const std::vector<unsigned int> ind) { return da.deriv(ind); });
     mod.method("integ", [](const DA& da, const unsigned int i) { return da.integ(i); });
     mod.method("integ", [](const DA& da, const std::vector<unsigned int> ind) { return da.integ(ind); });
+    mod.method("PsiFunction", [](const DA& da, const unsigned int n) { return da.PsiFunction(n); });
+    mod.method("isrt", [](const DA& da) { return da.isrt(); });
+    mod.method("icrt", [](const DA& da) { return da.icrt(); });
+    mod.method("root", [](const DA& da, const int p) { return da.root(p); });
+    mod.method("root", [](const DA& da) { return da.root(2); });
+    mod.method("mod", [](const DA& da, const double p) { return da.mod(p); });
+    mod.method("trim", [](const DA& da, const unsigned int min, const unsigned int max) { return da.trim(min, max); });
+    mod.method("divide", [](const DA& da, const unsigned int var, const unsigned int p) { return da.divide(var, p); });
+    mod.method("erf", [](const DA& da) { return da.erf(); });
+    mod.method("erfc", [](const DA& da) { return da.erfc(); });
+    mod.method("besselj", [](const int n, const DA& da) { return da.BesselJFunction(n); });
+    mod.method("bessely", [](const int n, const DA& da) { return da.BesselYFunction(n); });
+    mod.method("besseli", [](const int n, const DA& da) { return da.BesselIFunction(n); });
+    mod.method("besselk", [](const int n, const DA& da) { return da.BesselKFunction(n); });
+    mod.method("gamma", [](const DA& da) { return da.GammaFunction(); });
+    mod.method("loggamma", [](const DA& da) { return da.LogGammaFunction(); });
 
     // adding DA methods to Base
     mod.set_override_module(jl_base_module);
@@ -74,6 +91,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("asin", [](const DA& da) { return da.asin(); });
     mod.method("acos", [](const DA& da) { return da.acos(); });
     mod.method("atan", [](const DA& da) { return da.atan(); });
+    mod.method("atan", [](const DA& da1, const DA& da2) { return da1.atan2(da2); });
     mod.method("sinh", [](const DA& da) { return da.sinh(); });
     mod.method("cosh", [](const DA& da) { return da.cosh(); });
     mod.method("tanh", [](const DA& da) { return da.tanh(); });
@@ -82,9 +100,15 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("atanh", [](const DA& da) { return da.atanh(); });
     mod.method("exp", [](const DA& da) { return da.exp(); });
     mod.method("log", [](const DA& da) { return da.log(); });
+    mod.method("log", [](const double b, const DA& da) { return da.logb(b); });
     mod.method("log10", [](const DA& da) { return da.log10(); });
     mod.method("log2", [](const DA& da) { return da.log2(); });
     mod.method("sqrt", [](const DA& da) { return da.sqrt(); });
+    mod.method("cbrt", [](const DA& da) { return da.cbrt(); });
+    mod.method("hypot", [](const DA& da1, const DA& da2) { return da1.hypot(da2); });
+    mod.method("inv", [](const DA& da) { return da.minv(); });
+    mod.method("round", [](const DA& da) { return da.round(); });
+    mod.method("trunc", [](const DA& da) { return da.trunc(); });
     // displaying
 //    mod.method("show", )  // TODO: how to do show (then don't need print/println below)
     mod.method("print", [](DA& da) { std::cout << da.toString(); });
@@ -101,6 +125,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
         wrapped.template constructor<const size_t>();
 
+        wrapped.method("toString", [](const WrappedT& avec) { return avec.toString(); });
         wrapped.method("sqr", [](const WrappedT& avec) { return avec.sqr(); });
 
         // add methods to Base

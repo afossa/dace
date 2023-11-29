@@ -14,9 +14,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("init", [](const unsigned int ord, const unsigned int nvar) {
             DA::init(ord, nvar);
         });
-    mod.method("getMaxOrder", []() { return DA::getMaxOrder(); });
-    mod.method("getMaxVariables", []() { return DA::getMaxVariables(); });
-    mod.method("getMaxMonomials", []() { return DA::getMaxMonomials(); });
+    mod.method("getMaxOrder", []()->int64_t { return DA::getMaxOrder(); });
+    mod.method("getMaxVariables", []()->int64_t { return DA::getMaxVariables(); });
+    mod.method("getMaxMonomials", []()->int64_t { return DA::getMaxMonomials(); });
 
     // add the Monomial object
     mod.add_type<Monomial>("Monomial")

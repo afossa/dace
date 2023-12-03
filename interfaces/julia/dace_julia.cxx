@@ -165,10 +165,10 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
 
     // adding AlgebraicMatrix
-    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix")
+    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix", jlcxx::julia_type("AbstractArray", "Base"))
             .apply<AlgebraicMatrix<DA>, AlgebraicMatrix<double>>([](auto wrapped) {
         typedef typename decltype(wrapped)::type WrappedT;
-        //typedef typename WrappedT::value_type ScalarT;
+        // TODO: how to get the scalar type (i.e. DA or double)
 
         wrapped.template constructor<const int>();
         wrapped.template constructor<const int, const int>();
@@ -179,8 +179,10 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         // TODO: add show instead of print/println
         wrapped.module().method("print", [](const WrappedT& amat) { std::cout << amat; });
         wrapped.module().method("println", [](const WrappedT& amat) { std::cout << amat; });
-        // implementing the indexing interface
+        // implementing the abstract array interface
         wrapped.module().method("getindex", [](const WrappedT& amat, const int irow, const int icol)->const auto& { return amat.at(irow, icol); });
+        wrapped.module().method("size", [](const WrappedT& amat) { return std::make_tuple(amat.nrows(), amat.ncols()); });
+        wrapped.module().method("length", [](const WrappedT& amat) { return amat.size(); });
         // stop adding methods to base
         wrapped.module().unset_override_module();
     });

@@ -17,6 +17,13 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("getMaxOrder", []()->int64_t { return DA::getMaxOrder(); });
     mod.method("getMaxVariables", []()->int64_t { return DA::getMaxVariables(); });
     mod.method("getMaxMonomials", []()->int64_t { return DA::getMaxMonomials(); });
+    mod.method("setEps", [](const double eps) { return DA::setEps(eps); });
+    mod.method("getEps", []() { return DA::getEps(); });
+    mod.method("getEpsMac", []() { return DA::getEpsMac(); });
+    mod.method("setTO", [](const unsigned int ot) { return DA::setTO(ot); });
+    mod.method("getTO", []() { return DA::getTO(); });
+    mod.method("pushTO", [](const unsigned int ot) { DA::pushTO(ot); });
+    mod.method("popTO", []() { DA::popTO(); });
 
     // add the Monomial object
     mod.add_type<Monomial>("Monomial")
@@ -39,11 +46,18 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .constructor([](const jlcxx::StrictlyTypedNumber<int64_t> i) { return new DA(static_cast<int>(i.value), 1.0); })
         .constructor<const int, const double>()
         .method("getCoefficient", &DA::getCoefficient)
+        .method("getCoefficient", [](const DA& da, jlcxx::ArrayRef<unsigned int> jj) {
+                std::vector<unsigned int> jjvec(jj.begin(), jj.end());
+                return da.getCoefficient(jjvec);
+            })
         .method("multiplyMonomials", &DA::multiplyMonomials)
         .method("sqr", &DA::sqr)
+        .method("cons", &DA::cons)
         .method("toString", &DA::toString);
 
     // TODO: add finaliser(s)??? is it necessary?
+
+    jlcxx::stl::apply_stl<DA>(mod);
 
     mod.method("getMonomials", [](const DA& da)->std::vector<Monomial> { return da.getMonomials(); });
     mod.method("deriv", [](const DA& da, const unsigned int i) { return da.deriv(i); });
@@ -83,7 +97,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("/", [](const DA& da, const double c) { return da / c; });
     mod.method("/", [](const double c, const DA& da) { return c / da; });
     mod.method("^", [](const DA& da, const jlcxx::StrictlyTypedNumber<int> p) { return da.pow(p.value); });
+    mod.method("^", [](const DA& da, const jlcxx::StrictlyTypedNumber<int64_t> p) { return da.pow(static_cast<int>(p.value)); });
     mod.method("^", [](const DA& da, const jlcxx::StrictlyTypedNumber<double> p) { return da.pow(p.value); });
+    mod.method("-", [](const DA& da) { return -da; });
     // maths functions
     mod.method("sin", [](const DA& da) { return da.sin(); });
     mod.method("cos", [](const DA& da) { return da.cos(); });
@@ -153,19 +169,30 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
     mod.method("gradient", [](const DA& da)->AlgebraicVector<DA> { return da.gradient(); });
     mod.method("deriv", [](const AlgebraicVector<DA>& vec, const unsigned int p)->AlgebraicVector<DA> { return vec.deriv(p); });
-
+    mod.method("integ", [](const AlgebraicVector<DA>& obj, const unsigned int p) { return obj.integ(p); });
+    mod.method("linear", [](const DA& da)->AlgebraicVector<double> { return da.linear(); });
+    mod.method("invert", [](const AlgebraicVector<DA>& vec) { return vec.invert(); });
 
     // adding compiledDA
     mod.add_type<compiledDA>("compiledDA")
         .constructor<const DA&>()
+        .constructor<std::vector<DA>&>()
         .method("getDim", &compiledDA::getDim)
         .method("getOrd", &compiledDA::getOrd)
         .method("getVars", &compiledDA::getVars)
         .method("getTerms", &compiledDA::getTerms);
 
+    // DA polynomial evaluation routines
+    mod.method("eval", [](const DA& da, const std::vector<DA>& args) { return eval(da, args); });
+    mod.method("compile", [](const DA& da) { return da.compile(); });
+    mod.method("evalScalar", [](const DA& da, const double arg) { return da.evalScalar(arg); });
+
+    mod.method("eval", [](const compiledDA& cda, std::vector<double>& args, std::vector<double>& res) { cda.eval(args, res); });
+
+
 
     // adding AlgebraicMatrix
-    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix", jlcxx::julia_type("AbstractArray", "Base"))
+    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix")
             .apply<AlgebraicMatrix<DA>, AlgebraicMatrix<double>>([](auto wrapped) {
         typedef typename decltype(wrapped)::type WrappedT;
         // TODO: how to get the scalar type (i.e. DA or double)

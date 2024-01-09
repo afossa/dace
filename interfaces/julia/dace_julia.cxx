@@ -172,6 +172,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("integ", [](const AlgebraicVector<DA>& obj, const unsigned int p) { return obj.integ(p); });
     mod.method("linear", [](const DA& da)->AlgebraicVector<double> { return da.linear(); });
     mod.method("invert", [](const AlgebraicVector<DA>& vec) { return vec.invert(); });
+    mod.method("cons", [](const AlgebraicVector<DA>& vec)->AlgebraicVector<double> { return vec.cons(); });
+    mod.method("eval", [](const AlgebraicVector<DA>& obj, AlgebraicVector<DA>& args) { return obj.eval(args); });
 
     // adding compiledDA
     mod.add_type<compiledDA>("compiledDA")

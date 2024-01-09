@@ -80,7 +80,11 @@
 // Define DACE_THREAD_LOCAL decorator for thread local variable storage
 #ifdef WITH_PTHREAD
     #ifdef _WIN32
-        #define DACE_THREAD_LOCAL __declspec(thread)
+        #ifdef __MINGW32__
+            #define DACE_THREAD_LOCAL __thread
+        #else
+            #define DACE_THREAD_LOCAL __declspec(thread)
+        #endif
     #else
         #define DACE_THREAD_LOCAL __thread
     #endif

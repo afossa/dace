@@ -125,10 +125,6 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("inv", [](const DA& da) { return da.minv(); });
     mod.method("round", [](const DA& da) { return da.round(); });
     mod.method("trunc", [](const DA& da) { return da.trunc(); });
-    // displaying
-//    mod.method("show", )  // TODO: how to do show (then don't need print/println below)
-    mod.method("print", [](DA& da) { std::cout << da.toString(); });
-    mod.method("println", [](DA& da) { std::cout << da.toString(); });
     // end adding methods to base
     mod.unset_override_module();
 
@@ -146,9 +142,6 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
         // add methods to Base
         wrapped.module().set_override_module(jl_base_module);
-        // TODO: add show instead of print(ln)
-        wrapped.module().method("print", [](const WrappedT& avec) { std::cout << avec; });
-        wrapped.module().method("println", [](const WrappedT& avec) { std::cout << avec; });
         // implementing the AbstractArray interface
         wrapped.module().method("size", [](const WrappedT& avec) { return std::make_tuple(avec.size()); });
         wrapped.module().method("getindex", [](const WrappedT& avec, const int i) { return avec.at(i-1); });
@@ -205,9 +198,6 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
         // add methods to base
         wrapped.module().set_override_module(jl_base_module);
-        // TODO: add show instead of print/println
-        wrapped.module().method("print", [](const WrappedT& amat) { std::cout << amat; });
-        wrapped.module().method("println", [](const WrappedT& amat) { std::cout << amat; });
         // implementing the abstract array interface
         wrapped.module().method("getindex", [](const WrappedT& amat, const int irow, const int icol)->const auto& { return amat.at(irow, icol); });
         wrapped.module().method("size", [](const WrappedT& amat) { return std::make_tuple(amat.nrows(), amat.ncols()); });

@@ -168,6 +168,31 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("cons", [](const AlgebraicVector<DA>& vec)->AlgebraicVector<double> { return vec.cons(); });
     mod.method("eval", [](const AlgebraicVector<DA>& obj, AlgebraicVector<DA>& args) { return obj.eval(args); });
 
+    // add AlgebraicVector methods to Base
+    mod.set_override_module(jl_base_module);
+    mod.method("+", [](const AlgebraicVector<DA>& vec1, const AlgebraicVector<DA>& vec2) { return vec1 + vec2; });
+    mod.method("+", [](const AlgebraicVector<DA>& vec, const double scalar) { return vec + scalar; });
+    mod.method("+", [](const double scalar, const AlgebraicVector<DA>& vec) { return vec + scalar; });
+    mod.method("+", [](const AlgebraicVector<DA>& vec, const DA& scalar) { return vec + scalar; });
+    mod.method("+", [](const DA& scalar, const AlgebraicVector<DA>& vec) { return vec + scalar; });
+    mod.method("-", [](const AlgebraicVector<DA>& vec1, const AlgebraicVector<DA>& vec2) { return vec1 - vec2; });
+    mod.method("-", [](const AlgebraicVector<DA>& vec, const double scalar) { return vec - scalar; });
+    mod.method("-", [](const double scalar, const AlgebraicVector<DA>& vec) { return scalar - vec; });
+    mod.method("-", [](const AlgebraicVector<DA>& vec, const DA& scalar) { return vec - scalar; });
+    mod.method("-", [](const DA& scalar, const AlgebraicVector<DA>& vec) { return scalar - vec; });
+    mod.method("*", [](const AlgebraicVector<DA>& vec1, const AlgebraicVector<DA>& vec2) { return vec1 * vec2; });
+    mod.method("*", [](const AlgebraicVector<DA>& vec, const double scalar) { return vec * scalar; });
+    mod.method("*", [](const double scalar, const AlgebraicVector<DA>& vec) { return scalar * vec; });
+    mod.method("*", [](const AlgebraicVector<DA>& vec, const DA& scalar) { return vec * scalar; });
+    mod.method("*", [](const DA& scalar, const AlgebraicVector<DA>& vec) { return scalar * vec; });
+    mod.method("/", [](const AlgebraicVector<DA>& vec1, const AlgebraicVector<DA>& vec2) { return vec1 / vec2; });
+    mod.method("/", [](const AlgebraicVector<DA>& vec, const double scalar) { return vec / scalar; });
+    mod.method("/", [](const double scalar, const AlgebraicVector<DA>& vec) { return scalar / vec; });
+    mod.method("/", [](const AlgebraicVector<DA>& vec, const DA& scalar) { return vec / scalar; });
+    mod.method("/", [](const DA& scalar, const AlgebraicVector<DA>& vec) { return scalar / vec; });
+    // end adding methods to base
+    mod.unset_override_module();
+
     // adding compiledDA
     mod.add_type<compiledDA>("compiledDA")
         .constructor<const DA&>()

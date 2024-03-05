@@ -41,9 +41,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     // add the DA object
     mod.add_type<DA>("DA")
         .constructor<>()
-        .constructor([](const jlcxx::StrictlyTypedNumber<double> c) { return new DA(c.value); })
-        .constructor([](const jlcxx::StrictlyTypedNumber<int32_t> i) { return new DA(static_cast<int>(i.value), 1.0); })
-        .constructor([](const jlcxx::StrictlyTypedNumber<int64_t> i) { return new DA(static_cast<int>(i.value), 1.0); })
+        .constructor<const double>()
         .constructor<const int, const double>()
         .method("getCoefficient", &DA::getCoefficient)
         .method("getCoefficient", [](const DA& da, jlcxx::ArrayRef<unsigned int> jj) {
@@ -80,6 +78,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("besselk", [](const int n, const DA& da) { return da.BesselKFunction(n); });
     mod.method("gamma", [](const DA& da) { return da.GammaFunction(); });
     mod.method("loggamma", [](const DA& da) { return da.LogGammaFunction(); });
+    mod.method("powi", [](const DA& da, const int p) { return da.pow(p); });
+    mod.method("powd", [](const DA& da, const double p) { return da.pow(p); });
 
     // adding DA methods to Base
     mod.set_override_module(jl_base_module);
@@ -96,9 +96,6 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("/", [](const DA& da1, const DA& da2) { return da1 / da2; });
     mod.method("/", [](const DA& da, const double c) { return da / c; });
     mod.method("/", [](const double c, const DA& da) { return c / da; });
-    mod.method("^", [](const DA& da, const jlcxx::StrictlyTypedNumber<int> p) { return da.pow(p.value); });
-    mod.method("^", [](const DA& da, const jlcxx::StrictlyTypedNumber<int64_t> p) { return da.pow(static_cast<int>(p.value)); });
-    mod.method("^", [](const DA& da, const jlcxx::StrictlyTypedNumber<double> p) { return da.pow(p.value); });
     mod.method("-", [](const DA& da) { return -da; });
     // maths functions
     mod.method("sin", [](const DA& da) { return da.sin(); });

@@ -67,6 +67,11 @@ endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 # Boolean options
 option(WITH_ALGEBRAICMATRIX "Include the AlgebraicMatrix type (experimental)" OFF)
 option(WITH_PTHREAD "Enable threading via pthread library" OFF)
+option(WITH_JULIA "Build the Julia interface" OFF)
+
+if (WITH_JULIA)
+    find_package(JlCxx REQUIRED)
+endif()
 
 # Tri-state option for memory model and the associated choices
 set(DACE_MEMORY_MODEL DYNAMIC CACHE STRING "DACE memory model")
@@ -121,6 +126,9 @@ include_directories("interfaces/cxx/include")
 # now process the subdirectories
 add_subdirectory(core/contrib)
 add_subdirectory(core)
+if (WITH_JULIA)
+    add_subdirectory(interfaces/julia)
+endif()
 add_subdirectory(interfaces/cxx)
 
 

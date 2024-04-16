@@ -39,7 +39,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
 
     // add the DA object
-    mod.add_type<DA>("DA")
+    mod.add_type<DA>("DA", jlcxx::julia_type("Real", "Base"))
         .constructor<>()
         .constructor<const double>()
         .constructor<const int, const double>()

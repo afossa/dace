@@ -6,6 +6,8 @@
 #include <jlcxx/tuple.hpp>
 #include <dace/dace.h>
 
+// map trivial layouts directly, see "Breaking changes in v0.9" in CxxWrap README
+// template<> struct jlcxx::IsMirroredType<DACE::Interval> : std::false_type { };
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     using namespace DACE;
@@ -37,6 +39,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
     jlcxx::stl::apply_stl<Monomial>(mod);
 
+    // map the Interval object to a predefined Julia structure
+    mod.map_type<Interval>("Interval");
+    jlcxx::stl::apply_stl<Interval>(mod);
 
     // add the DA object
     mod.add_type<DA>("DA", jlcxx::julia_type("Real", "Base"))
@@ -80,6 +85,13 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("loggamma", [](const DA& da) { return da.LogGammaFunction(); });
     mod.method("powi", [](const DA& da, const int p) { return da.pow(p); });
     mod.method("powd", [](const DA& da, const double p) { return da.pow(p); });
+
+    // norm and estimation routines
+    mod.method("abs", [](const DA& da) { return da.abs(); });
+    mod.method("norm", [](const DA& da, const unsigned int p) { return da.norm(p); });
+    mod.method("orderNorm", [](const DA& da, const unsigned int v, const unsigned int p) { return da.orderNorm(v, p); });
+    mod.method("estimNorm", [](const DA& da, const unsigned int v, const unsigned int p, const unsigned int o) { return da.estimNorm(v, p, o); });
+    mod.method("bound", [](const DA& da) { return da.bound(); });
 
     // adding DA methods to Base
     mod.set_override_module(jl_base_module);

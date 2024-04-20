@@ -20,35 +20,41 @@
 *******************************************************************************/
 
 /*
- * Interval.h
+ * Interval.cpp
  *
- *  Created on: Mar 14, 2014
- *      Author: Dinamica Srl
- *
- *  Last modified: Apr 17, 2024
- *         Author: Alberto Fossa'
+ *  Created on: Apr 17, 2024
+ *      Author: Alberto Fossa'
  */
 
-#ifndef DINAMICA_INTERVAL_H_
-#define DINAMICA_INTERVAL_H_
+// C++ stdlib classes used only internally in the implementation
+#include <sstream>
+#include <iomanip>
 
-// C++ stdlib classes used in this public interface
-#include <string>
-#include <ostream>
+// DACE classes
+#include "dace/config.h"
+#include "dace/Interval.h"
+#include "dace/DA.h"
 
 namespace DACE{
 
-/*! Class representing an interval. */
-class DACE_API Interval
-{
-public:
-    double m_lb;            //!< Lower bound.
-    double m_ub;            //!< Upper bound.
+std::string Interval::toString() const {
+/*! Convert interval to string.
+   \return A string representing the interval in human readable form.
+ */
+    std::ostringstream oss;
+    oss << std::setprecision(16) << std::scientific;
+    oss << "[" << m_lb << ", " << m_ub << "]" << std::endl;
+    return oss.str();
+}
 
-    std::string toString() const; //!< Convert to string representation.
-};
-
-DACE_API std::ostream& operator<< (std::ostream &out, const Interval &m); //!< Overload output stream operator.
+std::ostream& operator<< (std::ostream &out, const Interval &m){
+/*! Overload of std::operator<< in iostream.
+   \param[in] out standard output stream.
+   \param[in] m Interval to be printed in the stream
+   \return The output stream out.
+ */
+    out << m.toString();
+    return out;
+}
 
 }
-#endif /* DINAMICA_INTERVAL_H_ */

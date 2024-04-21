@@ -110,7 +110,6 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("/", [](const double c, const DA& da) { return c / da; });
     mod.method("-", [](const DA& da) { return -da; });
     // maths functions
-    mod.method("abs", [](const DA& da) { return da.abs(); });
     mod.method("sin", [](const DA& da) { return da.sin(); });
     mod.method("cos", [](const DA& da) { return da.cos(); });
     mod.method("tan", [](const DA& da) { return da.tan(); });

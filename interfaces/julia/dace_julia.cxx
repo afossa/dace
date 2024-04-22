@@ -22,8 +22,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("setEps", [](const double eps) { return DA::setEps(eps); });
     mod.method("getEps", []() { return DA::getEps(); });
     mod.method("getEpsMac", []() { return DA::getEpsMac(); });
-    mod.method("setTO", [](const unsigned int ot) { return DA::setTO(ot); });
-    mod.method("getTO", []() { return DA::getTO(); });
+    mod.method("setTO", [](const unsigned int ot)->int64_t { return DA::setTO(ot); });
+    mod.method("getTO", []()->int64_t { return DA::getTO(); });
     mod.method("pushTO", [](const unsigned int ot) { DA::pushTO(ot); });
     mod.method("popTO", []() { DA::popTO(); });
 

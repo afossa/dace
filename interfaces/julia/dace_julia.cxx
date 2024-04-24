@@ -144,7 +144,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         typedef typename decltype(wrapped)::type WrappedT;
         typedef typename WrappedT::value_type ScalarT;  // AlgebraicVector inherits from std::vector which sets value_type
 
-        wrapped.template constructor<const size_t>();
+        wrapped.template constructor<const size_t>();                // constructor with size
+        wrapped.template constructor<const std::vector<ScalarT>&>(); // copy constructor
 
         wrapped.method("toString", [](const WrappedT& avec) { return avec.toString(); });
         wrapped.method("sqr", [](const WrappedT& avec) { return avec.sqr(); });

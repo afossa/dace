@@ -166,6 +166,10 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         // TODO: ...
         // stop adding methods to base
         wrapped.module().unset_override_module();
+
+        // TODO how can we use templates to wrap single functions?
+        wrapped.method("eval", [](const DA& da, const WrappedT& args) { return da.eval(args); });
+        wrapped.method("eval", [](const AlgebraicVector<DA>& vec, const WrappedT& args) { return vec.eval(args); });
     });
 
     mod.method("trim", [](const AlgebraicVector<DA>& da, const unsigned int min, const unsigned int max) { return da.trim(min, max); });
@@ -176,7 +180,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("linear", [](const DA& da)->AlgebraicVector<double> { return da.linear(); });
     mod.method("invert", [](const AlgebraicVector<DA>& vec) { return vec.invert(); });
     mod.method("cons", [](const AlgebraicVector<DA>& vec)->AlgebraicVector<double> { return vec.cons(); });
-    mod.method("eval", [](const AlgebraicVector<DA>& obj, AlgebraicVector<DA>& args) { return obj.eval(args); });
+    // mod.method("eval", [](const AlgebraicVector<DA>& obj, AlgebraicVector<DA>& args) { return obj.eval(args); });
 
     // add AlgebraicVector methods to Base
     mod.set_override_module(jl_base_module);
@@ -207,19 +211,23 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.add_type<compiledDA>("compiledDA")
         .constructor<const DA&>()
         .constructor<std::vector<DA>&>()
+        .constructor<AlgebraicVector<DA>&>() // TODO how to leverage inheritance here?
         .method("getDim", &compiledDA::getDim)
         .method("getOrd", &compiledDA::getOrd)
         .method("getVars", &compiledDA::getVars)
         .method("getTerms", &compiledDA::getTerms);
 
     // DA polynomial evaluation routines
-    mod.method("eval", [](const DA& da, const std::vector<DA>& args) { return eval(da, args); });
     mod.method("compile", [](const DA& da) { return da.compile(); });
-    mod.method("evalScalar", [](const DA& da, const double arg) { return da.evalScalar(arg); });
 
+    // TODO how to avoid duplicate code?
+    mod.method("eval", [](const compiledDA& cda, const AlgebraicVector<DA>& args) { return cda.eval(args); });
+    mod.method("eval", [](const compiledDA& cda, const AlgebraicVector<double>& args) { return cda.eval(args); });
+    mod.method("eval", [](const compiledDA& cda, const std::vector<DA>& args) { return cda.eval(args); });
+    mod.method("eval", [](const compiledDA& cda, const std::vector<double>& args) { return cda.eval(args); });
     mod.method("eval", [](const compiledDA& cda, std::vector<double>& args, std::vector<double>& res) { cda.eval(args, res); });
 
-
+    mod.method("evalScalar", [](const DA& da, const double arg) { return da.evalScalar(arg); });
 
     // adding AlgebraicMatrix
     mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix")

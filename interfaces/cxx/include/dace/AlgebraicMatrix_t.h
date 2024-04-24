@@ -88,7 +88,7 @@ template<typename U,typename V> AlgebraicVector<typename PromotionTrait< U, V >:
 }
 
 template<class T> void AlgebraicMatrix<T>::resize(int size) {
-/*! Resize AlgeraicMatrix to a square AlgebraicMatrix of size.
+/*! Resize AlgebraicMatrix to a square AlgebraicMatrix of size.
    The original values are kept at the original location if they are inside bounds of the new matrix.
    \param[in] size Size of the matrix (number of rows/columns).
    \sa AlgebraicMatrix<T>::resize

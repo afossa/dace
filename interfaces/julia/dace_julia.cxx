@@ -9,6 +9,15 @@
 // map trivial layouts directly, see "Breaking changes in v0.9" in CxxWrap README
 // template<> struct jlcxx::IsMirroredType<DACE::Interval> : std::false_type { };
 
+// macros for evaluation routines
+#define EVAL(T, U) \
+    mod.method("eval", [](const T& obj, const U& args) { return obj.eval(args); });
+#define EVAL_COMPILED(T) \
+    mod.method("eval", [](const compiledDA& cda, const T& args, T& res) { cda.eval(args, res); });
+#define EVAL_SCALAR(T, U) \
+    mod.method("evalScalar", [](const T& obj, const U& arg) { return obj.evalScalar(arg); });
+
+
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     using namespace DACE;
 
@@ -58,7 +67,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .method("cons", &DA::cons)
         .method("toString", &DA::toString);
 
-    // TODO: add finaliser(s)??? is it necessary?
+    // TODO: add finalizer(s)??? is it necessary?
 
     jlcxx::stl::apply_stl<DA>(mod);
 
@@ -92,6 +101,13 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("orderNorm", [](const DA& da, const unsigned int v, const unsigned int p) { return da.orderNorm(v, p); });
     mod.method("estimNorm", [](const DA& da, const unsigned int v, const unsigned int p, const unsigned int o) { return da.estimNorm(v, p, o); });
     mod.method("bound", [](const DA& da) { return da.bound(); });
+
+    // polynomial evaluation routines
+    EVAL(DA, std::vector<DA>);
+    EVAL(DA, std::vector<double>);
+
+    EVAL_SCALAR(DA, double);
+    EVAL_SCALAR(DA, DA);
 
     // adding DA methods to Base
     mod.set_override_module(jl_base_module);
@@ -166,10 +182,6 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         // TODO: ...
         // stop adding methods to base
         wrapped.module().unset_override_module();
-
-        // TODO how can we use templates to wrap single functions?
-        wrapped.method("eval", [](const DA& da, const WrappedT& args) { return da.eval(args); });
-        wrapped.method("eval", [](const AlgebraicVector<DA>& vec, const WrappedT& args) { return vec.eval(args); });
     });
 
     mod.method("trim", [](const AlgebraicVector<DA>& da, const unsigned int min, const unsigned int max) { return da.trim(min, max); });
@@ -180,7 +192,19 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("linear", [](const DA& da)->AlgebraicVector<double> { return da.linear(); });
     mod.method("invert", [](const AlgebraicVector<DA>& vec) { return vec.invert(); });
     mod.method("cons", [](const AlgebraicVector<DA>& vec)->AlgebraicVector<double> { return vec.cons(); });
-    // mod.method("eval", [](const AlgebraicVector<DA>& obj, AlgebraicVector<DA>& args) { return obj.eval(args); });
+
+    // polynomial evaluation routines
+    EVAL(AlgebraicVector<DA>, AlgebraicVector<DA>);
+    EVAL(AlgebraicVector<DA>, AlgebraicVector<double>);
+    EVAL(AlgebraicVector<DA>, std::vector<DA>);
+    EVAL(AlgebraicVector<DA>, std::vector<double>);
+
+    EVAL_SCALAR(AlgebraicVector<DA>, double);
+    EVAL_SCALAR(AlgebraicVector<DA>, DA);
+
+    // we need to define AlgebraicVector first before we can compile these
+    EVAL(DA, AlgebraicVector<DA>);
+    EVAL(DA, AlgebraicVector<double>);
 
     // add AlgebraicVector methods to Base
     mod.set_override_module(jl_base_module);
@@ -217,17 +241,24 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .method("getVars", &compiledDA::getVars)
         .method("getTerms", &compiledDA::getTerms);
 
-    // DA polynomial evaluation routines
     mod.method("compile", [](const DA& da) { return da.compile(); });
+    mod.method("compile", [](const std::vector<DA>& vec) { return compiledDA(vec); });
+    mod.method("compile", [](const AlgebraicVector<DA>& vec) { return vec.compile(); });
 
-    // TODO how to avoid duplicate code?
-    mod.method("eval", [](const compiledDA& cda, const AlgebraicVector<DA>& args) { return cda.eval(args); });
-    mod.method("eval", [](const compiledDA& cda, const AlgebraicVector<double>& args) { return cda.eval(args); });
-    mod.method("eval", [](const compiledDA& cda, const std::vector<DA>& args) { return cda.eval(args); });
-    mod.method("eval", [](const compiledDA& cda, const std::vector<double>& args) { return cda.eval(args); });
-    mod.method("eval", [](const compiledDA& cda, std::vector<double>& args, std::vector<double>& res) { cda.eval(args, res); });
+    // polynomial evaluation routines
+    EVAL(compiledDA, AlgebraicVector<DA>);
+    EVAL(compiledDA, AlgebraicVector<double>);
+    EVAL(compiledDA, std::vector<DA>);
+    EVAL(compiledDA, std::vector<double>);
 
-    mod.method("evalScalar", [](const DA& da, const double arg) { return da.evalScalar(arg); });
+    EVAL_COMPILED(AlgebraicVector<DA>);
+    EVAL_COMPILED(AlgebraicVector<double>);
+    EVAL_COMPILED(std::vector<DA>);
+    EVAL_COMPILED(std::vector<double>);
+
+    EVAL_SCALAR(compiledDA, double);
+    EVAL_SCALAR(compiledDA, DA);
+
 
     // adding AlgebraicMatrix
     mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix")

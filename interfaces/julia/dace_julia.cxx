@@ -264,18 +264,23 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix")
             .apply<AlgebraicMatrix<DA>, AlgebraicMatrix<double>>([](auto wrapped) {
         typedef typename decltype(wrapped)::type WrappedT;
-        // TODO: how to get the scalar type (i.e. DA or double)
+        typedef typename WrappedT::value_type ScalarT; // AlgebraicMatrix encapsulates a std::vector which sets value_type
 
         wrapped.template constructor<const int>();
         wrapped.template constructor<const int, const int>();
-        //wrapped.template constructor<const int, const int, const ScalarT&>();
+        wrapped.template constructor<const int, const int, const ScalarT&>();
+
+        // pretty print
+        wrapped.method("toString", [](const WrappedT& amat) { return amat.toString(); });
 
         // add methods to base
         wrapped.module().set_override_module(jl_base_module);
         // implementing the abstract array interface
-        wrapped.module().method("getindex", [](const WrappedT& amat, const int irow, const int icol)->const auto& { return amat.at(irow, icol); });
-        wrapped.module().method("size", [](const WrappedT& amat) { return std::make_tuple(amat.nrows(), amat.ncols()); });
-        wrapped.module().method("length", [](const WrappedT& amat) { return amat.size(); });
+        // TODO check why the matrix bounds check is not working
+        wrapped.module().method("getindex", [](const WrappedT& amat, const int irow, const int icol) { return amat.at(irow-1, icol-1); });
+        wrapped.module().method("setindex!", [](WrappedT& amat, const ScalarT& val, const int irow, const int icol) { amat.at(irow-1, icol-1) = val; });
+        wrapped.module().method("size", [](const WrappedT& amat)->std::tuple<int64_t, int64_t> { return std::make_tuple(amat.nrows(), amat.ncols()); });
+        wrapped.module().method("length", [](const WrappedT& amat)->int64_t { return amat.size(); });
         // stop adding methods to base
         wrapped.module().unset_override_module();
     });

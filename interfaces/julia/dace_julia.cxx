@@ -169,11 +169,12 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         // add methods to Base
         wrapped.module().set_override_module(jl_base_module);
         // implementing the AbstractArray interface
-        wrapped.module().method("size", [](const WrappedT& avec) { return std::make_tuple(avec.size()); });
+        wrapped.module().method("size", [](const WrappedT& avec)->std::tuple<int64_t> { return std::make_tuple(avec.size()); });
+        wrapped.module().method("length", [](const WrappedT& avec)->int64_t { return avec.size(); });
         wrapped.module().method("getindex", [](const WrappedT& avec, const int i) { return avec.at(i-1); });
         wrapped.module().method("setindex!", [](WrappedT& avec, const ScalarT& v, const int i) { avec.at(i-1) = v; });
-        wrapped.module().method("firstindex", [](const WrappedT& avec) { return 1; });
-        wrapped.module().method("lastindex", [](const WrappedT& avec) { return avec.size(); });
+        wrapped.module().method("firstindex", [](const WrappedT& avec)->int64_t { return 1; });
+        wrapped.module().method("lastindex", [](const WrappedT& avec)->int64_t { return avec.size(); });
         // maths functions
         wrapped.module().method("sin", [](const WrappedT& avec) { return sin(avec); });
         wrapped.module().method("cos", [](const WrappedT& avec) { return cos(avec); });
@@ -261,7 +262,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
 
     // adding AlgebraicMatrix
-    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix")
+    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix", jlcxx::julia_type("AbstractMatrix", "Base"))
             .apply<AlgebraicMatrix<DA>, AlgebraicMatrix<double>>([](auto wrapped) {
         typedef typename decltype(wrapped)::type WrappedT;
         typedef typename WrappedT::value_type ScalarT; // AlgebraicMatrix encapsulates a std::vector which sets value_type
@@ -277,10 +278,13 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         wrapped.module().set_override_module(jl_base_module);
         // implementing the abstract array interface
         // TODO check why the matrix bounds check is not working
-        wrapped.module().method("getindex", [](const WrappedT& amat, const int irow, const int icol) { return amat.at(irow-1, icol-1); });
-        wrapped.module().method("setindex!", [](WrappedT& amat, const ScalarT& val, const int irow, const int icol) { amat.at(irow-1, icol-1) = val; });
         wrapped.module().method("size", [](const WrappedT& amat)->std::tuple<int64_t, int64_t> { return std::make_tuple(amat.nrows(), amat.ncols()); });
         wrapped.module().method("length", [](const WrappedT& amat)->int64_t { return amat.size(); });
+        wrapped.module().method("getindex", [](const WrappedT& amat, const int irow, const int icol) { return amat.at(irow-1, icol-1); });
+        wrapped.module().method("setindex!", [](WrappedT& amat, const ScalarT& val, const int irow, const int icol) { amat.at(irow-1, icol-1) = val; });
+        wrapped.module().method("firstindex", [](const WrappedT& amat)->int64_t { return 1; });
+        wrapped.module().method("lastindex", [](const WrappedT& amat)->int64_t { return amat.size(); });
+
         // stop adding methods to base
         wrapped.module().unset_override_module();
     });

@@ -738,6 +738,16 @@ template<typename U> std::istream& operator>> (std::istream &in, AlgebraicMatrix
     return in;
 }
 
+template<typename U> std::string AlgebraicMatrix<U>::toString() const{
+/*! Convert the current AlgebraicMatrix<T> to string.
+    \return A string.
+ */
+    std::ostringstream strs;
+    strs << *this << std::endl;
+
+    return strs.str();
+}
+
 /***********************************************************************************
 *     Matrix operations
 ************************************************************************************/

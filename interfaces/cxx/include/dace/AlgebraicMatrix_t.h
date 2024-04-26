@@ -147,7 +147,7 @@ template<class T> T& AlgebraicMatrix<T>::at(const unsigned int irow, const unsig
    \return The element of the AlgebraicMatrix.
    \sa AlgebraicMatrix<T>::at
  */
-    if ( !(irow<(this->_nrows) )&&!( icol<(this->_ncols) ))
+    if ( !(irow<(this->_nrows)) || !(icol<(this->_ncols)) )
         throw std::runtime_error("DACE::AlgebraicMatrix<T>::at: matrix element position out of bound.");
 
     return this->_data[irow*this->_ncols + icol];
@@ -160,7 +160,7 @@ template<class T> const T& AlgebraicMatrix<T>::at(const unsigned int irow, const
    \return The element of the AlgebraicMatrix.
    \sa AlgebraicMatrix<T>::at
  */
-    if ( !(irow<(this->_nrows) )&&!( icol<(this->_ncols)) )
+    if ( !(irow<(this->_nrows)) || !(icol<(this->_ncols)) )
         throw std::runtime_error("DACE::AlgebraicMatrix<T>::at: matrix element position out of bound.");
 
     return this->_data[irow*this->_ncols + icol];

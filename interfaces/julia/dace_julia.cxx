@@ -288,4 +288,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         // stop adding methods to base
         wrapped.module().unset_override_module();
     });
+
+    // Jacobian and linear part of an AlgebraicVector (requires definition of AlgebraicMatrix)
+    mod.method("jacobian", [](const AlgebraicVector<DA>& vec)->AlgebraicMatrix<DA> { return vec.jacobian(); });
+    mod.method("linear", [](const AlgebraicVector<DA>& vec)->AlgebraicMatrix<double> { return vec.linear(); });
 }

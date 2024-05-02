@@ -6,7 +6,7 @@ mkdir build && cd build
 
 # get the installation and prefix paths
 JULIA_ROOT_PATH=$1
-CXX_WRAP_PREFIX_PATH="/artifacts/5209ca23f516fb3391b885eef717e49b4ee0a268"
+CXX_WRAP_PREFIX_PATH="/artifacts/c129d84767ca7fe64514b3789c623e1203355949"
 
 # configure the project
 cmake .. \

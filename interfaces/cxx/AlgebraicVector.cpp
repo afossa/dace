@@ -62,6 +62,26 @@ template<> AlgebraicMatrix<double> AlgebraicVector<DA>::linear() const{
     }
     return out;
 }
+
+template<> AlgebraicMatrix<DA> AlgebraicVector<DA>::jacobian() const{
+/*! Return the Jacobian of an AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
+   \return An AlgebraicMatrix<DA> of dimension size by nvar, where size is the
+    size of the AlgebraicVector<T> considered and nvar is the number of variables defined
+    during the DACE initialization. Each row contains the gradient of the corresponding
+    DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+    const size_t size = this->size();
+    const int nvar = DA::getMaxVariables();
+
+    AlgebraicMatrix<DA> out(size, nvar);
+    for(size_t i=0; i<size; i++){
+          out.setrow( i, (*this)[i].gradient() );
+    }
+    return out;
+}
 #else
 template<> std::vector< std::vector<double> > AlgebraicVector<DA>::linear() const{
 /*! Return the linear part of a AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
@@ -76,6 +96,23 @@ template<> std::vector< std::vector<double> > AlgebraicVector<DA>::linear() cons
     std::vector< std::vector<double> > out(size);
     for(size_t i=0; i<size; i++){
           out[i] = (*this)[i].linear();
+    }
+    return out;
+}
+
+template<> std::vector< std::vector<DA> > AlgebraicVector<DA>::jacobian() const{
+/*! Return the Jacobian of an AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
+   \return A std::vector< std::vector<DA> >, where each std::vector<DA> contains
+    the gradient of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+    const size_t size = this->size();
+
+    std::vector< std::vector<DA> > out(size);
+    for(size_t i=0; i<size; i++){
+          out[i] = (*this)[i].gradient();
     }
     return out;
 }
@@ -325,6 +362,33 @@ template<> std::vector< std::vector<double> > linear(const AlgebraicVector<DA> &
  */
 #endif /* WITH_ALGEBRAICMATRIX */
     return obj.linear();
+}
+
+#ifdef WITH_ALGEBRAICMATRIX
+template<> AlgebraicMatrix<DA> jacobian(const AlgebraicVector<DA> &obj){
+/*! Return the Jacobian of an AlgebraicVector<T>.
+   \param[in] obj AlgebraicVector<T> to extract the Jacobian from
+   \return An AlgebraicMatrix<DA> of dimensions size by nvar, where
+    size is the size of the AlgebraicVector<T> considered and nvar is the
+    number of variables defined during the DACE initialization.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+   \sa AlgebraicVector<T>::jacobian
+ */
+#else
+template<> std::vector< std::vector<DA> > jacobian(const AlgebraicVector<DA> &obj){
+/*! Return the Jacobian of an AlgebraicVector<T>. Only defined for AlgebraicVector<DA>.
+   \param[in] obj AlgebraicVector<T> to extract the Jacobian from
+   \return A std::vector< std::vector<DA> > containing the gradients of
+    each component of the AlgebraicVector<DA> obj.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+   \sa AlgebraicVector<T>::jacobian
+ */
+#endif /* WITH_ALGEBRAICMATRIX */
+    return obj.jacobian();
 }
 
 template<> AlgebraicVector<DA> trim(const AlgebraicVector<DA> &obj, unsigned int min, unsigned int max){

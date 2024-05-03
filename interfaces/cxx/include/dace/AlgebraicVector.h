@@ -64,11 +64,13 @@ public:
     AlgebraicVector<T> extract(const size_t first, const size_t last) const;            //!< Return the subvector containing the elements between first and last, inclusively
     template<typename U> AlgebraicVector<typename PromotionTrait<T,U>::returnType> concat(const std::vector<U> &obj) const;
                                                                                                     //!< Return a new vector containing the elements of this vector followed by those of obj
-    AlgebraicVector<double> cons() const;                                                           //!< Return vector containing only the costant parts of each element
+    AlgebraicVector<double> cons() const;                                                           //!< Return vector containing only the constant parts of each element
 #ifdef WITH_ALGEBRAICMATRIX
     AlgebraicMatrix<double> linear() const;                                                         //!< Return the linear parts in the form of a Matrix
+    AlgebraicMatrix<DA> jacobian() const;                                                           //!< Return the Jacobian in the form of a Matrix
 #else
     std::vector< std::vector<double> > linear() const;                                              //!< Return the linear parts in the form of a vector of vectors
+    std::vector< std::vector<DA> > jacobian() const;                                                //!< Return the Jacobian in the form of a vector of vectors
 #endif /* WITH_ALGEBRAICMATRIX */
 
     /***********************************************************************************
@@ -192,8 +194,10 @@ template<typename U> std::istream& operator>>(std::istream &in, AlgebraicVector<
 template<typename T> AlgebraicVector<double> cons(const AlgebraicVector<T> &obj);
 #ifdef WITH_ALGEBRAICMATRIX
 template<typename T> AlgebraicMatrix<double> linear(const AlgebraicVector<T> &obj);
+template<typename T> AlgebraicMatrix<DA> jacobian(const AlgebraicVector<T> &obj);
 #else
 template<typename T> std::vector< std::vector<double> > linear(const AlgebraicVector<T> &obj);
+template<typename T> std::vector< std::vector<DA> > jacobian(const AlgebraicVector<T> &obj);
 #endif /* WITH_ALGEBRAICMATRIX */
 template<typename T> AlgebraicVector<T> deriv(const AlgebraicVector<T> &obj, const unsigned int p);
 template<typename T> AlgebraicVector<T> integ(const AlgebraicVector<T> &obj, const unsigned int p);
@@ -234,10 +238,12 @@ template<typename T> AlgebraicVector<T> plug(const AlgebraicVector<T> &obj, cons
 #ifdef WITH_ALGEBRAICMATRIX
 template<> DACE_API AlgebraicMatrix<double> AlgebraicVector<DA>::linear() const;
 template<> DACE_API AlgebraicMatrix<double> linear(const AlgebraicVector<DA> &obj);
+template<> DACE_API AlgebraicMatrix<DA> jacobian(const AlgebraicVector<DA> &obj);
 #else
 template<> DACE_API std::vector< std::vector<double> > AlgebraicVector<DA>::linear() const;
 template<> DACE_API void AlgebraicVector<DA>::matrix_inverse(std::vector< std::vector<double> > &A);
 template<> DACE_API std::vector< std::vector<double> > linear(const AlgebraicVector<DA> &obj);
+template<> DACE_API std::vector< std::vector<DA> > jacobian(const AlgebraicVector<DA> &obj);
 #endif /* WITH_ALGEBRAICMATRIX */
 template<> DACE_API AlgebraicVector<DA> AlgebraicVector<DA>::trim(const unsigned int min, const unsigned int max) const;
 template<> DACE_API AlgebraicVector<DA> AlgebraicVector<DA>::deriv(const unsigned int p) const;

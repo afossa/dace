@@ -6,6 +6,17 @@
 #include <jlcxx/tuple.hpp>
 #include <dace/dace.h>
 
+// map trivial layouts directly, see "Breaking changes in v0.9" in CxxWrap README
+// template<> struct jlcxx::IsMirroredType<DACE::Interval> : std::false_type { };
+
+// macros for evaluation routines
+#define EVAL(T, U) \
+    mod.method("eval", [](const T& obj, const U& args) { return obj.eval(args); });
+#define EVAL_COMPILED(T) \
+    mod.method("eval", [](const compiledDA& cda, const T& args, T& res) { cda.eval(args, res); });
+#define EVAL_SCALAR(T, U) \
+    mod.method("evalScalar", [](const T& obj, const U& arg) { return obj.evalScalar(arg); });
+
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     using namespace DACE;
@@ -20,8 +31,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("setEps", [](const double eps) { return DA::setEps(eps); });
     mod.method("getEps", []() { return DA::getEps(); });
     mod.method("getEpsMac", []() { return DA::getEpsMac(); });
-    mod.method("setTO", [](const unsigned int ot) { return DA::setTO(ot); });
-    mod.method("getTO", []() { return DA::getTO(); });
+    mod.method("setTO", [](const unsigned int ot)->int64_t { return DA::setTO(ot); });
+    mod.method("getTO", []()->int64_t { return DA::getTO(); });
     mod.method("pushTO", [](const unsigned int ot) { DA::pushTO(ot); });
     mod.method("popTO", []() { DA::popTO(); });
 
@@ -37,6 +48,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
     jlcxx::stl::apply_stl<Monomial>(mod);
 
+    // map the Interval object to a predefined Julia structure
+    mod.map_type<Interval>("Interval");
+    jlcxx::stl::apply_stl<Interval>(mod);
 
     // add the DA object
     mod.add_type<DA>("DA", jlcxx::julia_type("Real", "Base"))
@@ -53,7 +67,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .method("cons", &DA::cons)
         .method("toString", &DA::toString);
 
-    // TODO: add finaliser(s)??? is it necessary?
+    // TODO: add finalizer(s)??? is it necessary?
 
     jlcxx::stl::apply_stl<DA>(mod);
 
@@ -80,6 +94,20 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("loggamma", [](const DA& da) { return da.LogGammaFunction(); });
     mod.method("powi", [](const DA& da, const int p) { return da.pow(p); });
     mod.method("powd", [](const DA& da, const double p) { return da.pow(p); });
+
+    // norm and estimation routines
+    mod.method("abs", [](const DA& da) { return da.abs(); });
+    mod.method("norm", [](const DA& da, const unsigned int p) { return da.norm(p); });
+    mod.method("orderNorm", [](const DA& da, const unsigned int v, const unsigned int p) { return da.orderNorm(v, p); });
+    mod.method("estimNorm", [](const DA& da, const unsigned int v, const unsigned int p, const unsigned int o) { return da.estimNorm(v, p, o); });
+    mod.method("bound", [](const DA& da) { return da.bound(); });
+
+    // polynomial evaluation routines
+    EVAL(DA, std::vector<DA>);
+    EVAL(DA, std::vector<double>);
+
+    EVAL_SCALAR(DA, double);
+    EVAL_SCALAR(DA, DA);
 
     // adding DA methods to Base
     mod.set_override_module(jl_base_module);
@@ -132,7 +160,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         typedef typename decltype(wrapped)::type WrappedT;
         typedef typename WrappedT::value_type ScalarT;  // AlgebraicVector inherits from std::vector which sets value_type
 
-        wrapped.template constructor<const size_t>();
+        wrapped.template constructor<const size_t>();                // constructor with size
+        wrapped.template constructor<const std::vector<ScalarT>&>(); // copy constructor
 
         wrapped.method("toString", [](const WrappedT& avec) { return avec.toString(); });
         wrapped.method("sqr", [](const WrappedT& avec) { return avec.sqr(); });
@@ -140,11 +169,12 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         // add methods to Base
         wrapped.module().set_override_module(jl_base_module);
         // implementing the AbstractArray interface
-        wrapped.module().method("size", [](const WrappedT& avec) { return std::make_tuple(avec.size()); });
+        wrapped.module().method("size", [](const WrappedT& avec)->std::tuple<int64_t> { return std::make_tuple(avec.size()); });
+        wrapped.module().method("length", [](const WrappedT& avec)->int64_t { return avec.size(); });
         wrapped.module().method("getindex", [](const WrappedT& avec, const int i) { return avec.at(i-1); });
         wrapped.module().method("setindex!", [](WrappedT& avec, const ScalarT& v, const int i) { avec.at(i-1) = v; });
-        wrapped.module().method("firstindex", [](const WrappedT& avec) { return 1; });
-        wrapped.module().method("lastindex", [](const WrappedT& avec) { return avec.size(); });
+        wrapped.module().method("firstindex", [](const WrappedT& avec)->int64_t { return 1; });
+        wrapped.module().method("lastindex", [](const WrappedT& avec)->int64_t { return avec.size(); });
         // maths functions
         wrapped.module().method("sin", [](const WrappedT& avec) { return sin(avec); });
         wrapped.module().method("cos", [](const WrappedT& avec) { return cos(avec); });
@@ -163,7 +193,19 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("linear", [](const DA& da)->AlgebraicVector<double> { return da.linear(); });
     mod.method("invert", [](const AlgebraicVector<DA>& vec) { return vec.invert(); });
     mod.method("cons", [](const AlgebraicVector<DA>& vec)->AlgebraicVector<double> { return vec.cons(); });
-    mod.method("eval", [](const AlgebraicVector<DA>& obj, AlgebraicVector<DA>& args) { return obj.eval(args); });
+
+    // polynomial evaluation routines
+    EVAL(AlgebraicVector<DA>, AlgebraicVector<DA>);
+    EVAL(AlgebraicVector<DA>, AlgebraicVector<double>);
+    EVAL(AlgebraicVector<DA>, std::vector<DA>);
+    EVAL(AlgebraicVector<DA>, std::vector<double>);
+
+    EVAL_SCALAR(AlgebraicVector<DA>, double);
+    EVAL_SCALAR(AlgebraicVector<DA>, DA);
+
+    // we need to define AlgebraicVector first before we can compile these
+    EVAL(DA, AlgebraicVector<DA>);
+    EVAL(DA, AlgebraicVector<double>);
 
     // add AlgebraicVector methods to Base
     mod.set_override_module(jl_base_module);
@@ -194,37 +236,60 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.add_type<compiledDA>("compiledDA")
         .constructor<const DA&>()
         .constructor<std::vector<DA>&>()
+        .constructor<AlgebraicVector<DA>&>() // TODO how to leverage inheritance here?
         .method("getDim", &compiledDA::getDim)
         .method("getOrd", &compiledDA::getOrd)
         .method("getVars", &compiledDA::getVars)
         .method("getTerms", &compiledDA::getTerms);
 
-    // DA polynomial evaluation routines
-    mod.method("eval", [](const DA& da, const std::vector<DA>& args) { return eval(da, args); });
     mod.method("compile", [](const DA& da) { return da.compile(); });
-    mod.method("evalScalar", [](const DA& da, const double arg) { return da.evalScalar(arg); });
+    mod.method("compile", [](const std::vector<DA>& vec) { return compiledDA(vec); });
+    mod.method("compile", [](const AlgebraicVector<DA>& vec) { return vec.compile(); });
 
-    mod.method("eval", [](const compiledDA& cda, std::vector<double>& args, std::vector<double>& res) { cda.eval(args, res); });
+    // polynomial evaluation routines
+    EVAL(compiledDA, AlgebraicVector<DA>);
+    EVAL(compiledDA, AlgebraicVector<double>);
+    EVAL(compiledDA, std::vector<DA>);
+    EVAL(compiledDA, std::vector<double>);
 
+    EVAL_COMPILED(AlgebraicVector<DA>);
+    EVAL_COMPILED(AlgebraicVector<double>);
+    EVAL_COMPILED(std::vector<DA>);
+    EVAL_COMPILED(std::vector<double>);
+
+    EVAL_SCALAR(compiledDA, double);
+    EVAL_SCALAR(compiledDA, DA);
 
 
     // adding AlgebraicMatrix
-    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix")
+    mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicMatrix", jlcxx::julia_type("AbstractMatrix", "Base"))
             .apply<AlgebraicMatrix<DA>, AlgebraicMatrix<double>>([](auto wrapped) {
         typedef typename decltype(wrapped)::type WrappedT;
-        // TODO: how to get the scalar type (i.e. DA or double)
+        typedef typename WrappedT::value_type ScalarT; // AlgebraicMatrix encapsulates a std::vector which sets value_type
 
         wrapped.template constructor<const int>();
         wrapped.template constructor<const int, const int>();
-        //wrapped.template constructor<const int, const int, const ScalarT&>();
+        wrapped.template constructor<const int, const int, const ScalarT&>();
+
+        // pretty print
+        wrapped.method("toString", [](const WrappedT& amat) { return amat.toString(); });
 
         // add methods to base
         wrapped.module().set_override_module(jl_base_module);
         // implementing the abstract array interface
-        wrapped.module().method("getindex", [](const WrappedT& amat, const int irow, const int icol)->const auto& { return amat.at(irow, icol); });
-        wrapped.module().method("size", [](const WrappedT& amat) { return std::make_tuple(amat.nrows(), amat.ncols()); });
-        wrapped.module().method("length", [](const WrappedT& amat) { return amat.size(); });
+        // TODO check why the matrix bounds check is not working
+        wrapped.module().method("size", [](const WrappedT& amat)->std::tuple<int64_t, int64_t> { return std::make_tuple(amat.nrows(), amat.ncols()); });
+        wrapped.module().method("length", [](const WrappedT& amat)->int64_t { return amat.size(); });
+        wrapped.module().method("getindex", [](const WrappedT& amat, const int irow, const int icol) { return amat.at(irow-1, icol-1); });
+        wrapped.module().method("setindex!", [](WrappedT& amat, const ScalarT& val, const int irow, const int icol) { amat.at(irow-1, icol-1) = val; });
+        wrapped.module().method("firstindex", [](const WrappedT& amat)->int64_t { return 1; });
+        wrapped.module().method("lastindex", [](const WrappedT& amat)->int64_t { return amat.size(); });
+
         // stop adding methods to base
         wrapped.module().unset_override_module();
     });
+
+    // Jacobian and linear part of an AlgebraicVector (requires definition of AlgebraicMatrix)
+    mod.method("jacobian", [](const AlgebraicVector<DA>& vec)->AlgebraicMatrix<DA> { return vec.jacobian(); });
+    mod.method("linear", [](const AlgebraicVector<DA>& vec)->AlgebraicMatrix<double> { return vec.linear(); });
 }

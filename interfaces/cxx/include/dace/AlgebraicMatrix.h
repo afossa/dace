@@ -121,8 +121,14 @@ public:
     /***********************************************************************************
     *     Coefficient access routines
     ************************************************************************************/
-    AlgebraicMatrix<double> cons() const;   //!< Return the costant part of a AlgebraicMatrix<T>
+    AlgebraicMatrix<double> cons() const;   //!< Return the constant part of a AlgebraicMatrix<T>
 
+    /***********************************************************************************
+    *     Input/Output routines
+    ************************************************************************************/
+    std::string toString() const;           //!< Convert the matrix into a human readable string
+
+    typedef T value_type;                   //!< Define value_type for STL compatibility
 private:
     unsigned int _nrows;    //!< Number of rows of the matrix
     unsigned int _ncols;    //!< Number of columns of the matrix

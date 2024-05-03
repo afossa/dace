@@ -88,7 +88,7 @@ template<typename U,typename V> AlgebraicVector<typename PromotionTrait< U, V >:
 }
 
 template<class T> void AlgebraicMatrix<T>::resize(int size) {
-/*! Resize AlgeraicMatrix to a square AlgebraicMatrix of size.
+/*! Resize AlgebraicMatrix to a square AlgebraicMatrix of size.
    The original values are kept at the original location if they are inside bounds of the new matrix.
    \param[in] size Size of the matrix (number of rows/columns).
    \sa AlgebraicMatrix<T>::resize
@@ -147,7 +147,7 @@ template<class T> T& AlgebraicMatrix<T>::at(const unsigned int irow, const unsig
    \return The element of the AlgebraicMatrix.
    \sa AlgebraicMatrix<T>::at
  */
-    if ( !(irow<(this->_nrows) )&&!( icol<(this->_ncols) ))
+    if ( !(irow<(this->_nrows)) || !(icol<(this->_ncols)) )
         throw std::runtime_error("DACE::AlgebraicMatrix<T>::at: matrix element position out of bound.");
 
     return this->_data[irow*this->_ncols + icol];
@@ -160,7 +160,7 @@ template<class T> const T& AlgebraicMatrix<T>::at(const unsigned int irow, const
    \return The element of the AlgebraicMatrix.
    \sa AlgebraicMatrix<T>::at
  */
-    if ( !(irow<(this->_nrows) )&&!( icol<(this->_ncols)) )
+    if ( !(irow<(this->_nrows)) || !(icol<(this->_ncols)) )
         throw std::runtime_error("DACE::AlgebraicMatrix<T>::at: matrix element position out of bound.");
 
     return this->_data[irow*this->_ncols + icol];
@@ -736,6 +736,16 @@ template<typename U> std::istream& operator>> (std::istream &in, AlgebraicMatrix
         std::getline(in, skip_line);
     }
     return in;
+}
+
+template<typename U> std::string AlgebraicMatrix<U>::toString() const{
+/*! Convert the current AlgebraicMatrix<T> to string.
+    \return A string.
+ */
+    std::ostringstream strs;
+    strs << *this << std::endl;
+
+    return strs.str();
 }
 
 /***********************************************************************************

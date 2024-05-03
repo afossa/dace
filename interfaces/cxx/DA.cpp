@@ -330,7 +330,7 @@ double DA::cons() const{
 
 AlgebraicVector<double> DA::linear() const{
 /*! Return the linear part of a DA object.
-   \return An AlgebraicVector<dobule> containing the linear coefficients of
+   \return An AlgebraicVector<double> containing the linear coefficients of
     each independent DA variable in the DA object.
    \throw DACE::DACEException
  */

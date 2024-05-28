@@ -68,9 +68,11 @@ public:
 #ifdef WITH_ALGEBRAICMATRIX
     AlgebraicMatrix<double> linear() const;                                                         //!< Return the linear parts in the form of a Matrix
     AlgebraicMatrix<DA> jacobian() const;                                                           //!< Return the Jacobian in the form of a Matrix
+    std::vector<AlgebraicMatrix<DA>> hessian() const;                                               //!< Return the Hessian in the form of a vector of Matrices
 #else
-    std::vector< std::vector<double> > linear() const;                                              //!< Return the linear parts in the form of a vector of vectors
-    std::vector< std::vector<DA> > jacobian() const;                                                //!< Return the Jacobian in the form of a vector of vectors
+    std::vector<std::vector<double>> linear() const;                                                //!< Return the linear parts in the form of a vector of vectors
+    std::vector<std::vector<DA>> jacobian() const;                                                  //!< Return the Jacobian in the form of a vector of vectors
+    std::vector<std::vector<std::vector<DA>>> hessian() const;                                      //!< Return the Hessian in the form of a vector of vectors of vectors
 #endif /* WITH_ALGEBRAICMATRIX */
 
     /***********************************************************************************
@@ -195,9 +197,11 @@ template<typename T> AlgebraicVector<double> cons(const AlgebraicVector<T> &obj)
 #ifdef WITH_ALGEBRAICMATRIX
 template<typename T> AlgebraicMatrix<double> linear(const AlgebraicVector<T> &obj);
 template<typename T> AlgebraicMatrix<DA> jacobian(const AlgebraicVector<T> &obj);
+template<typename T> std::vector<AlgebraicMatrix<DA>> hessian(const AlgebraicVector<T> &obj);
 #else
-template<typename T> std::vector< std::vector<double> > linear(const AlgebraicVector<T> &obj);
-template<typename T> std::vector< std::vector<DA> > jacobian(const AlgebraicVector<T> &obj);
+template<typename T> std::vector<std::vector<double>> linear(const AlgebraicVector<T> &obj);
+template<typename T> std::vector<std::vector<DA>> jacobian(const AlgebraicVector<T> &obj);
+template<typename T> std::vector<std::vector<std::vector<DA>>> hessian(const AlgebraicVector<T> &obj);
 #endif /* WITH_ALGEBRAICMATRIX */
 template<typename T> AlgebraicVector<T> deriv(const AlgebraicVector<T> &obj, const unsigned int p);
 template<typename T> AlgebraicVector<T> integ(const AlgebraicVector<T> &obj, const unsigned int p);

@@ -356,6 +356,44 @@ AlgebraicVector<DA> DA::gradient() const {
     return temp;
 }
 
+#ifdef WITH_ALGEBRAICMATRIX
+AlgebraicMatrix<DA> DA::hessian() const {
+/*! Compute the Hessian of the DA object.
+   \return An AlgebraicMatrix<DA> containing the second derivatives
+    of the DA object with respect to all independent DA variables.
+   \throw DACE::DACEException
+ */
+
+    const unsigned int nvar = daceGetMaxVariables();
+    AlgebraicMatrix<DA> temp(nvar);
+    for (unsigned int i = 0; i < nvar; i++) {
+        for (unsigned int j = 0; j < nvar; j++) {
+            temp.at(i, j) = deriv(i + 1).deriv(j + 1);
+        }
+    }
+    return temp;
+}
+#else
+std::vector<std::vector<DA>> DA::hessian() const {
+/*! Compute the Hessian of the DA object.
+   \return An AlgebraicMatrix<DA> containing the second derivatives
+    of the DA object with respect to all independent DA variables.
+   \throw DACE::DACEException
+ */
+
+    const unsigned int nvar = daceGetMaxVariables();
+    std::vector<std::vector<DA>> temp(nvar);
+    for (unsigned int i = 0; i < nvar; i++) {
+        std::vector<DA> row(nvar);
+        for (unsigned int j = 0; j < nvar; j++) {
+            row[j] = deriv(i + 1).deriv(j + 1);
+        }
+        temp[i] = row;
+    }
+    return temp;
+}
+#endif /* WITH_ALGEBRAICMATRIX */
+
 double DA::getCoefficient(const std::vector<unsigned int> &jj) const {
 /*! Return a specific coefficient of a DA object.
    \param[in] jj vector of the exponents of the coefficient to retrieve.
@@ -1941,6 +1979,29 @@ AlgebraicVector<DA> gradient(const DA &da) {
  */
 
     return da.gradient();}
+
+
+#ifdef WITH_ALGEBRAICMATRIX
+AlgebraicMatrix<DA> hessian(const DA &da) {
+/*! Compute the Hessian of a DA object.
+   \param[in] da the given DA object.
+   \return An AlgebraicMatrix<DA> containing the second derivatives
+    of the DA object with respect to all independent DA variables.
+   \throw DACE::DACEException
+ */
+
+    return da.hessian();}
+#else
+std::vector<std::vector<DA>> hessian(const DA &da) {
+/*! Compute the Hessian of a DA object.
+   \param[in] da the given DA object.
+   \return An AlgebraicMatrix<DA> containing the second derivatives
+    of the DA object with respect to all independent DA variables.
+   \throw DACE::DACEException
+ */
+
+    return da.hessian();}
+#endif /* WITH_ALGEBRAICMATRIX */
 
 
 DA divide(const DA &da, const unsigned int var, const unsigned int p){

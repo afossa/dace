@@ -52,6 +52,7 @@ class Monomial;
 class Interval;
 class DA;
 template<typename T> class AlgebraicVector;
+template<typename T> class AlgebraicMatrix;
 
 /*! Basic DA class representing a single polynomial. */
 class DACE_API DA
@@ -103,6 +104,11 @@ public:
     double cons() const;                                                    //!< Get constant part of a DA
     AlgebraicVector<double> linear() const;                                 //!< Get linear part of a DA
     AlgebraicVector<DA> gradient() const;                                   //!< Gradient vector with respect to all independent DA variables
+#ifdef WITH_ALGEBRAICMATRIX
+    AlgebraicMatrix<DA> hessian() const;                                    //!< Hessian matrix with respect to all independent DA variables
+#else
+    std::vector<std::vector<DA>> hessian() const;                           //!< Hessian matrix with respect to all independent DA variables
+#endif /* WITH_ALGEBRAICMATRIX */
     double getCoefficient(const std::vector<unsigned int> &jj) const;                //!< Get specific coefficient
     void setCoefficient(const std::vector<unsigned int> &jj, const double coeff);    //!< Set specific coefficient
     Monomial getMonomial(const unsigned int npos) const;                    //!< Get the Monomial at given position
@@ -262,6 +268,11 @@ public:
 DACE_API double cons(const DA &da);
 DACE_API AlgebraicVector<double> linear(const DA &da);
 DACE_API AlgebraicVector<DA> gradient(const DA &da);
+#ifdef WITH_ALGEBRAICMATRIX
+DACE_API AlgebraicMatrix<DA> hessian(const DA &da);
+#else
+DACE_API std::vector<std::vector<DA>> hessian(const DA &da);
+#endif /* WITH_ALGEBRAICMATRIX */
 
 DACE_API DA divide(const DA &da, const unsigned int var, const unsigned int p = 1);
 DACE_API DA deriv(const DA &da, const unsigned int i);

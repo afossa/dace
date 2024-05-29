@@ -634,6 +634,25 @@ template<class T> T AlgebraicMatrix<T>::det() const{
 }
 
 /***********************************************************************************
+*     Matrix norms
+************************************************************************************/
+template<class T> T AlgebraicMatrix<T>::frobenius() const {
+/*! Compute the Frobenius norm of an AlgebraicMatrix.
+    \return The Frobenius norm
+    \sa AlgebraicMatrix<T>::frobenius
+*/
+
+    using std::sqrt;
+    const size_t size = this->_data.size();
+    T tmp, sum = 0.0;
+    for(size_t i = 0; i < size; i++) {
+        tmp = this->_data[i];
+        sum += tmp * tmp;
+    }
+    return sqrt(sum);
+}
+
+/***********************************************************************************
 *     Coefficient access routines
 ************************************************************************************/
 template<class T> AlgebraicMatrix<double> AlgebraicMatrix<T>::cons() const{

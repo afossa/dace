@@ -119,6 +119,11 @@ public:
     AlgebraicMatrix<T> inv() const;         //!< Matrix inverse XXX: name
 
     /***********************************************************************************
+    *     Matrix norms
+    ************************************************************************************/
+    T frobenius() const; //! Frobenius norm
+
+    /***********************************************************************************
     *     Coefficient access routines
     ************************************************************************************/
     AlgebraicMatrix<double> cons() const;   //!< Return the constant part of a AlgebraicMatrix<T>

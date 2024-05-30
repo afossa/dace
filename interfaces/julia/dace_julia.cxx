@@ -153,6 +153,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     // end adding methods to base
     mod.unset_override_module();
 
+    // add static factory routines
+    mod.method("random", [](const double cm) { return DA::random(cm); });
+
 
     // adding AlgebraicVector
     mod.add_type<jlcxx::Parametric<jlcxx::TypeVar<1>>>("AlgebraicVector", jlcxx::julia_type("AbstractVector", "Base"))
@@ -232,6 +235,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     // end adding methods to base
     mod.unset_override_module();
 
+
     // adding compiledDA
     mod.add_type<compiledDA>("compiledDA")
         .constructor<const DA&>()
@@ -292,4 +296,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     // Jacobian and linear part of an AlgebraicVector (requires definition of AlgebraicMatrix)
     mod.method("jacobian", [](const AlgebraicVector<DA>& vec)->AlgebraicMatrix<DA> { return vec.jacobian(); });
     mod.method("linear", [](const AlgebraicVector<DA>& vec)->AlgebraicMatrix<double> { return vec.linear(); });
+
+    mod.method("hessian", [](const DA& da) { return da.hessian(); });
+    mod.method("hessian", [](const AlgebraicVector<DA>& vec) { return vec.hessian(); });
 }

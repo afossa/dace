@@ -82,6 +82,24 @@ template<> AlgebraicMatrix<DA> AlgebraicVector<DA>::jacobian() const{
     }
     return out;
 }
+
+template<> std::vector<AlgebraicMatrix<DA>> AlgebraicVector<DA>::hessian() const {
+/*! Return the Hessian of an AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
+   \return A vector of dimension size, where size is the size of the AlgebraicVector<T>
+    considered. Each entry is an nvar by nvar AlgebraicMatrix<T> containing the
+    Hessian of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+    const size_t size = this->size();
+
+    std::vector<AlgebraicMatrix<DA>> out(size);
+    for (size_t i = 0; i < size; i++) {
+          out[i] = (*this)[i].hessian();
+    }
+    return out;
+}
 #else
 template<> std::vector< std::vector<double> > AlgebraicVector<DA>::linear() const{
 /*! Return the linear part of a AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
@@ -113,6 +131,24 @@ template<> std::vector< std::vector<DA> > AlgebraicVector<DA>::jacobian() const{
     std::vector< std::vector<DA> > out(size);
     for(size_t i=0; i<size; i++){
           out[i] = (*this)[i].gradient();
+    }
+    return out;
+}
+
+template<> std::vector<std::vector<std::vector<DA>>> AlgebraicVector<DA>::hessian() const {
+/*! Return the Hessian of an AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
+   \return A vector of dimension size, where size is the size of the AlgebraicVector<T>
+    considered. Each entry is an nvar by nvar vector of vectors containing the
+    Hessian of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+    const size_t size = this->size();
+
+    std::vector<std::vector<std::vector<DA>>> out(size);
+    for (size_t i = 0; i < size; i++) {
+          out[i] = (*this)[i].hessian();
     }
     return out;
 }
@@ -389,6 +425,34 @@ template<> std::vector< std::vector<DA> > jacobian(const AlgebraicVector<DA> &ob
  */
 #endif /* WITH_ALGEBRAICMATRIX */
     return obj.jacobian();
+}
+
+#ifdef WITH_ALGEBRAICMATRIX
+template<> std::vector<AlgebraicMatrix<DA>> hessian(const AlgebraicVector<DA> &obj){
+/*! Return the Hessian of an AlgebraicVector<T>.
+   \param[in] obj AlgebraicVector<T> to extract the Hessian from
+   \return A vector of dimension size, where size is the size of the AlgebraicVector<T>
+    considered. Each entry is an nvar by nvar AlgebraicMatrix<T> containing the
+    Hessian of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+   \sa AlgebraicVector<T>::hessian
+ */
+#else
+template<> std::vector<std::vector<std::vector<DA>>> hessian(const AlgebraicVector<DA> &obj){
+/*! Return the Hessian of an AlgebraicVector<T>. Only defined for AlgebraicVector<DA>.
+   \param[in] obj AlgebraicVector<T> to extract the Hessian from
+   \return A vector of dimension size, where size is the size of the AlgebraicVector<T>
+    considered. Each entry is an nvar by nvar vector of vectors containing the
+    Hessian of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+   \sa AlgebraicVector<T>::hessian
+ */
+#endif /* WITH_ALGEBRAICMATRIX */
+    return obj.hessian();
 }
 
 template<> AlgebraicVector<DA> trim(const AlgebraicVector<DA> &obj, unsigned int min, unsigned int max){

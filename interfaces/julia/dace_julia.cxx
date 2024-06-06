@@ -293,9 +293,12 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         wrapped.module().unset_override_module();
     });
 
+    // Jacobian of a DA object (mimics the behavior of AlgebraicVecotr::jacobian() when called on a vector of size 1)
+    mod.method("jacobian", [](const DA& da) { return da.jacobian(); });
+
     // Jacobian and linear part of an AlgebraicVector (requires definition of AlgebraicMatrix)
-    mod.method("jacobian", [](const AlgebraicVector<DA>& vec)->AlgebraicMatrix<DA> { return vec.jacobian(); });
-    mod.method("linear", [](const AlgebraicVector<DA>& vec)->AlgebraicMatrix<double> { return vec.linear(); });
+    mod.method("jacobian", [](const AlgebraicVector<DA>& vec) { return vec.jacobian(); });
+    mod.method("linear", [](const AlgebraicVector<DA>& vec) { return vec.linear(); });
 
     mod.method("hessian", [](const DA& da) { return da.hessian(); });
     mod.method("hessian", [](const AlgebraicVector<DA>& vec) { return vec.hessian(); });

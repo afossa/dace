@@ -105,8 +105,10 @@ public:
     AlgebraicVector<double> linear() const;                                 //!< Get linear part of a DA
     AlgebraicVector<DA> gradient() const;                                   //!< Gradient vector with respect to all independent DA variables
 #ifdef WITH_ALGEBRAICMATRIX
+    AlgebraicMatrix<DA> jacobian() const;                                   //!< Jacobian matrix with respect to all independent DA variables
     AlgebraicMatrix<DA> hessian() const;                                    //!< Hessian matrix with respect to all independent DA variables
 #else
+    std::vector<std::vector<DA>> jacobian() const;                          //!< Jacobian matrix with respect to all independent DA variables
     std::vector<std::vector<DA>> hessian() const;                           //!< Hessian matrix with respect to all independent DA variables
 #endif /* WITH_ALGEBRAICMATRIX */
     double getCoefficient(const std::vector<unsigned int> &jj) const;                //!< Get specific coefficient
@@ -269,8 +271,10 @@ DACE_API double cons(const DA &da);
 DACE_API AlgebraicVector<double> linear(const DA &da);
 DACE_API AlgebraicVector<DA> gradient(const DA &da);
 #ifdef WITH_ALGEBRAICMATRIX
+DACE_API AlgebraicMatrix<DA> jacobian(const DA &da);
 DACE_API AlgebraicMatrix<DA> hessian(const DA &da);
 #else
+DACE_API std::vector<std::vector<DA>> jacobian(const DA &da);
 DACE_API std::vector<std::vector<DA>> hessian(const DA &da);
 #endif /* WITH_ALGEBRAICMATRIX */
 

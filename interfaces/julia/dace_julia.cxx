@@ -11,11 +11,14 @@
 
 // macros for evaluation routines
 #define EVAL(T, U) \
-    mod.method("eval", [](const T& obj, const U& args) { return obj.eval(args); });
+    mod.method("eval", [](const T& obj, const U& args) { return obj.eval(args); }, \
+            "Evaluation of `arg1` with a vector of arguments, `arg2`.");
 #define EVAL_COMPILED(T) \
-    mod.method("eval", [](const compiledDA& cda, const T& args, T& res) { cda.eval(args, res); });
+    mod.method("eval", [](const compiledDA& cda, const T& args, T& res) { cda.eval(args, res); }, \
+            "Evaluate the compiled polynomial, `arg1`, with a vector of any arithmetic type, `arg2`, and return vector of results, `arg3`.");
 #define EVAL_SCALAR(T, U) \
-    mod.method("evalScalar", [](const T& obj, const U& arg) { return obj.evalScalar(arg); });
+    mod.method("evalScalar", [](const T& obj, const U& arg) { return obj.evalScalar(arg); }, \
+            "Evaluation of `arg1` with a single arithmetic type argument, `arg2`.");
 
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
@@ -24,17 +27,32 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     // add DA static methods separately
     mod.method("init", [](const unsigned int ord, const unsigned int nvar) {
             DA::init(ord, nvar);
-        });
-    mod.method("getMaxOrder", []()->int64_t { return DA::getMaxOrder(); });
-    mod.method("getMaxVariables", []()->int64_t { return DA::getMaxVariables(); });
-    mod.method("getMaxMonomials", []()->int64_t { return DA::getMaxMonomials(); });
-    mod.method("setEps", [](const double eps) { return DA::setEps(eps); });
-    mod.method("getEps", []() { return DA::getEps(); });
-    mod.method("getEpsMac", []() { return DA::getEpsMac(); });
-    mod.method("setTO", [](const unsigned int ot)->int64_t { return DA::setTO(ot); });
-    mod.method("getTO", []()->int64_t { return DA::getTO(); });
-    mod.method("pushTO", [](const unsigned int ot) { DA::pushTO(ot); });
-    mod.method("popTO", []() { DA::popTO(); });
+        }, "Initialize the DACE control arrays and set the maximum order, `arg1`, and the maximum number of variables, `arg2`.\n\n"
+           "Note: must be called before any other DA routine can be used!");
+    mod.method("getMaxOrder", []()->int64_t { return DA::getMaxOrder(); },
+            "Return the maximum order currently set for the computation, or zero if undefined.");
+    mod.method("getMaxVariables", []()->int64_t { return DA::getMaxVariables(); },
+            "Return the maximum number of variables set for the computations, or zero if undefined.");
+    mod.method("getMaxMonomials", []()->int64_t { return DA::getMaxMonomials(); },
+            "Return the maximum number of monomials available with the order and number of variables specified, or zero if undefined.");
+    mod.method("setEps", [](const double eps) { return DA::setEps(eps); },
+            "Set the cutoff value eps to `arg1` and return the previous value, or zero if undefined.");
+    mod.method("getEps", []() { return DA::getEps(); },
+            "Return the cutoff value eps currently set for computations, or zero if undefined.");
+    mod.method("getEpsMac", []() { return DA::getEpsMac(); },
+            "Return the machine epsilon (pessimistic estimate), or zero if undefined.");
+    mod.method("setTO", [](const unsigned int ot)->int64_t { return DA::setTO(ot); },
+            "Set the truncation order to `arg1` and return the previous value, or zero if undefined.\n\n"
+            "All terms larger than the truncation order are discarded in subsequent operations.");
+    mod.method("getTO", []()->int64_t { return DA::getTO(); },
+            "Return the truncation order currently set for computations, or zero if undefined.\n\n"
+            "All terms larger than the truncation order are discarded in subsequent operations.");
+    mod.method("pushTO", [](const unsigned int ot) { DA::pushTO(ot); },
+            "Set a new trunction order (`arg1`), saving the previous one on the truncation order stack.\n\n"
+            "All terms larger than the truncation order are discarded in subsequent operations.");
+    mod.method("popTO", []() { DA::popTO(); },
+            "Restore the previous truncation order from the truncation order stack.\n\n"
+            "All terms larger than the truncation order are discarded in subsequent operations.");
 
     // add the Monomial object
     mod.add_type<Monomial>("Monomial")
@@ -71,9 +89,12 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
     jlcxx::stl::apply_stl<DA>(mod);
 
-    mod.method("getMonomials", [](const DA& da)->std::vector<Monomial> { return da.getMonomials(); });
-    mod.method("deriv", [](const DA& da, const unsigned int i) { return da.deriv(i); });
-    mod.method("deriv", [](const DA& da, const std::vector<unsigned int> ind) { return da.deriv(ind); });
+    mod.method("getMonomials", [](const DA& da)->std::vector<Monomial> { return da.getMonomials(); },
+        "Get vector of all non-zero Monomials for DA `arg1`");
+    mod.method("deriv", [](const DA& da, const unsigned int i) { return da.deriv(i); },
+        "Derivative of DA `arg1` with respect to given variable, `arg2`");
+    mod.method("deriv", [](const DA& da, const std::vector<unsigned int> ind) { return da.deriv(ind); },
+        "Derivative of DA `arg1` with respect to given variables, `arg2`");
     mod.method("integ", [](const DA& da, const unsigned int i) { return da.integ(i); });
     mod.method("integ", [](const DA& da, const std::vector<unsigned int> ind) { return da.integ(ind); });
     mod.method("PsiFunction", [](const DA& da, const unsigned int n) { return da.PsiFunction(n); });

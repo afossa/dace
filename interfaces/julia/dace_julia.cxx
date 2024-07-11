@@ -1,6 +1,8 @@
 #include "dace/AlgebraicVector.h"
 #include "dace/DA.h"
 #include <iostream>
+#include <stdexcept>
+#include <cstdlib>
 #include <jlcxx/jlcxx.hpp>
 #include <jlcxx/stl.hpp>
 #include <jlcxx/tuple.hpp>
@@ -19,6 +21,16 @@
 #define EVAL_SCALAR(T, U) \
     mod.method("evalScalar", [](const T& obj, const U& arg) { return obj.evalScalar(arg); }, \
             "Evaluation of `arg1` with a single arithmetic type argument, `arg2`.");
+
+
+// override the exit command (mainly so that the code doesn't exit when init isn't called first)
+// not sure how portable or safe this is so has to be enabled in cmake with -DCUSTOM_EXIT=ON
+#ifdef CUSTOM_EXIT
+void exit(int code) {
+    // TODO: should treat code==0 differently?
+    throw std::runtime_error("Caught exit call (code=" + std::to_string(code) + ")");
+}
+#endif
 
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {

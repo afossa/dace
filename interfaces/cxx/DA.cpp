@@ -358,7 +358,7 @@ AlgebraicVector<DA> DA::gradient() const {
 
 #ifdef WITH_ALGEBRAICMATRIX
 AlgebraicMatrix<DA> DA::jacobian() const {
-/*! Compute the Jacobian of the DA object. This is the 
+/*! Compute the Jacobian of the DA object. This is the
     same as DA::gradient except for the output type.
    \return An AlgebraicMatrix<DA> containing the partial derivatives
     of the DA object with respect to all independent DA variables.
@@ -388,7 +388,7 @@ AlgebraicMatrix<DA> DA::hessian() const {
 }
 #else
 std::vector<std::vector<DA>> DA::jacobian() const {
-/*! Compute the Jacobian of the DA object. This is the 
+/*! Compute the Jacobian of the DA object. This is the
     same as DA::gradient except for the output type.
    \return A vector of vectors containing the partial derivatives
     of the DA object with respect to all independent DA variables.
@@ -1049,6 +1049,22 @@ DA DA::mod(const double p) const{
     return temp;
 }
 
+DA DA::abs() const{
+/*! Compute the absolute value of the current DA object.
+   \return A new DA object containing the absolute value.
+   \throw DACE::DACEException
+ */
+    return std::signbit((*this).cons()) ? -(*this) : (*this);
+}
+
+DA DA::abs2() const{
+/*! Compute the square of the absolute value of the current DA object.
+   \return A new DA object containing the square of the absolute value.
+   \throw DACE::DACEException
+ */
+    return sqr();
+}
+
 DA DA::pow(const int p) const{
 /*! Elevate a DA object to a given integer power.
     The result is copied in a new DA object.
@@ -1568,13 +1584,13 @@ unsigned int DA::size() const{
     return res;
 }
 
-double DA::abs() const{
+double DA::maxNorm() const{
 /*! Compute the max norm of a DA object.
    \return A double corresponding to the result of the operation.
    \throw DACE::DACEException
  */
     double c;
-    c=daceAbsoluteValue(m_index);
+    c=daceMaxNorm(m_index);
     if(daceGetError()) DACEException();
 
     return c;
@@ -1912,7 +1928,7 @@ DA DA::identity(const unsigned int var){
    \throw DACE::DACEException
    \sa DA::DA
  */
-    return DA((int)var);
+    return DA((int)var, 1.0);
 }
 
 DA DA::fromString(const std::string &str){
@@ -2009,7 +2025,7 @@ AlgebraicVector<DA> gradient(const DA &da) {
 
 #ifdef WITH_ALGEBRAICMATRIX
 AlgebraicMatrix<DA> jacobian(const DA &da) {
-/*! Compute the Jacobian of a DA object. This is the 
+/*! Compute the Jacobian of a DA object. This is the
     same as DA::gradient except for the output type.
    \param[in] da the given DA object.
    \return An AlgebraicMatrix<DA> containing the partial derivatives
@@ -2030,7 +2046,7 @@ AlgebraicMatrix<DA> hessian(const DA &da) {
     return da.hessian();}
 #else
 std::vector<std::vector<DA>> jacobian(const DA &da) {
-/*! Compute the Jacobian of a DA object. This is the 
+/*! Compute the Jacobian of a DA object. This is the
     same as DA::gradient except for the output type.
    \param[in] da the given DA object.
    \return A vector of vectors containing the partial derivatives
@@ -2159,6 +2175,26 @@ DA mod(const DA &da, double p){
    \sa DA::mod
  */
     return da.mod(p);}
+
+DA abs(const DA &da){
+/*! Compute the absolute value of a DA object.
+    The result is copied in a new DA object.
+   \param[in] da a given DA object.
+   \return A new DA object containing the result of the operation.
+   \throw DACE::DACEException
+   \sa DA::abs
+ */
+    return da.abs();}
+
+DA abs2(const DA &da){
+/*! Compute the square of the absolute value of a DA object.
+    The result is copied in a new DA object.
+   \param[in] da a given DA object.
+   \return A new DA object containing the result of the operation.
+   \throw DACE::DACEException
+   \sa DA::abs2
+ */
+    return da.abs2();}
 
 DA pow(const DA &da, int p){
 /*! Raise a DA object to a given integer power.
@@ -2613,14 +2649,14 @@ unsigned int size(const DA &da){
  */
     return da.size();}
 
-double abs(const DA &da){
+double maxNorm(const DA &da){
 /*! Compute the max norm of a DA object.
    \param[in] da a given DA object.
    \return A double corresponding to the result of the operation.
    \throw DACE::DACEException
-   \sa DA::abs
+   \sa DA::maxNorm
  */
-    return da.abs();}
+    return da.maxNorm();}
 
 double norm(const DA &da, unsigned int type){
 /*! Compute different types of norms for a DA object.

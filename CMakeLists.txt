@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0.0)
+cmake_minimum_required (VERSION 3.6.0)
 include(CMakeDependentOption)
 
 # since MacOS 10.14 (XCode 10.0), default includes are no longer installed to /usr/include or /usr/local/include
@@ -36,14 +36,14 @@ endif(WIN32)
 # Standard is a hard requirement and that option is hidden from CMake GUI
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99 CACHE STRING "C standard (minimum 99)" FORCE)
-  set_property(CACHE CMAKE_C_STANDARD PROPERTY STRINGS 99 11)  # options shown in CMake GUI
+  set_property(CACHE CMAKE_C_STANDARD PROPERTY STRINGS 99 11 17)  # options shown in CMake GUI
 endif(NOT CMAKE_C_STANDARD)
 set(CMAKE_C_STANDARD_REQUIRED ON CACHE BOOL "")
 mark_as_advanced(CMAKE_C_STANDARD_REQUIRED)
 
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard (minimum 11)" FORCE)
-  set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 11 14 17)  # options shown in CMake GUI
+  set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard (minimum 14)" FORCE)
+  set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 14 17 20)  # options shown in CMake GUI
 endif(NOT CMAKE_CXX_STANDARD)
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "")
 mark_as_advanced(CMAKE_CXX_STANDARD_REQUIRED)
@@ -67,10 +67,18 @@ endif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 # Boolean options
 option(WITH_ALGEBRAICMATRIX "Include the AlgebraicMatrix type (experimental)" OFF)
 option(WITH_PTHREAD "Enable threading via pthread library" OFF)
+option(WITH_EIGEN "Include additional linear algebra routines delegated to Eigen" OFF)
 option(WITH_JULIA "Build the Julia interface" OFF)
 
-if (WITH_JULIA)
-    find_package(JlCxx REQUIRED)
+if(WITH_EIGEN)
+  find_package(Eigen3 3.4 REQUIRED)
+  add_definitions(-DWITH_EIGEN)
+  message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
+  set(Eigen3_INCLUDE_DIRS "${Eigen3_DIR}/../../../include")
+endif()
+if(WITH_JULIA)
+  find_package(JlCxx REQUIRED)
+  message(STATUS "Found JlCxx v${JlCxx_VERSION}: ${JlCxx_DIR}")
 endif()
 
 # Tri-state option for memory model and the associated choices
@@ -122,12 +130,15 @@ include_directories("core/include")
 include_directories("${CMAKE_BINARY_DIR}/core/include")
 # globally set the include directory for the C++ interface headers
 include_directories("interfaces/cxx/include")
+if(WITH_EIGEN)
+  include_directories(${Eigen3_INCLUDE_DIRS})
+endif()
 
 # now process the subdirectories
 add_subdirectory(core/contrib)
 add_subdirectory(core)
-if (WITH_JULIA)
-    add_subdirectory(interfaces/julia)
+if(WITH_JULIA)
+  add_subdirectory(interfaces/julia)
 endif()
 add_subdirectory(interfaces/cxx)
 
@@ -166,7 +177,7 @@ if(WIN32)
     CopyFiles \\\"$INSTDIR\\\\lib\\\\dace.dll\\\" \\\"$SYSDIR\\\"
 
      ")
-    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+  set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
 
     \\\${DisableX64FSRedirection}
 

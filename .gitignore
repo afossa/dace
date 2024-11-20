@@ -1,4 +1,8 @@
+.cache
+.DS_Store
 .idea
 .vscode
+.zed
+*.log
 build/
 documentation/

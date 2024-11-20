@@ -819,9 +819,19 @@ void daceRoot(const DACEDA *ina, const int np, DACEDA *inc)
 
     if((iodd == 0) && (a0 <= 0.0))
     {
-        daceSetError(__func__, DACE_ERROR, 45);
-        daceCreateConstant(inc, 0.0);
-        return;
+        if (daceMaxNorm(ina) == 0.0)
+        {
+            // ina is the constant zero
+            daceCreateConstant(inc, 0.0);
+            return;
+        }
+        else
+        {
+            // ina has non-zero non-constant coefficients
+            daceSetError(__func__, DACE_ERROR, 45);
+            daceCreateConstant(inc, 0.0);
+            return;
+        }
     }
     else if((iodd == 1) && (a0 == 0.0))
     {

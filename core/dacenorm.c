@@ -42,11 +42,11 @@
  *     DACE norm and norm estimation routines
  *********************************************************************************/
 
-/*! Compute the absolute value (maximum coefficient norm) of a DA object.
-   \param[in] ina Pointer to the DA object to take absolute value of
-   \return The absolute value of ina
+/*! Compute the maximum coefficient norm of a DA object.
+   \param[in] ina Pointer to the DA object to compute the norm of
+   \return The max norm of ina
 */
-double daceAbsoluteValue(const DACEDA *ina)
+double daceMaxNorm(const DACEDA *ina)
 {
     return daceNorm(ina, 0);
 }

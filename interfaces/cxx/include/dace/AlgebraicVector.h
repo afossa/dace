@@ -32,6 +32,9 @@
 // C++ stdlib classes required for interface definition
 #include <vector>
 #include <initializer_list>
+#ifdef WITH_EIGEN
+#include <eigen3/Eigen/Core>
+#endif /* WITH_EIGEN */
 
 // DACE classes required for interface definition (DA.h needed for DA::getMaxOrder(), DA::getMaxVariables() default arguments)
 #include "dace/PromotionTrait.h"
@@ -57,11 +60,15 @@ public:
     AlgebraicVector(const std::vector<T> &v);                                                 //!< Copy constructor
     AlgebraicVector(const std::vector<T> &v, const size_t first, const size_t last);          //!< Extraction constructor
     AlgebraicVector(std::initializer_list<T> l);                                              //!< Constructor from braced initializer list
+    AlgebraicVector(const T *data, const size_t size);                                        //!< Constructor from raw array
+#ifdef WITH_EIGEN
+    AlgebraicVector(const Eigen::VectorX<T> &data);                                           //!< Constructor from Eigen vector
+#endif /* WITH_EIGEN */
 
     /***********************************************************************************
     *     Element and coefficient access / extraction routines
     ************************************************************************************/
-    AlgebraicVector<T> extract(const size_t first, const size_t last) const;            //!< Return the subvector containing the elements between first and last, inclusively
+    AlgebraicVector<T> extract(const size_t first, const size_t last) const;                        //!< Return the subvector containing the elements between first and last, inclusively
     template<typename U> AlgebraicVector<typename PromotionTrait<T,U>::returnType> concat(const std::vector<U> &obj) const;
                                                                                                     //!< Return a new vector containing the elements of this vector followed by those of obj
     AlgebraicVector<double> cons() const;                                                           //!< Return vector containing only the constant parts of each element
@@ -74,6 +81,9 @@ public:
     std::vector<std::vector<DA>> jacobian() const;                                                  //!< Return the Jacobian in the form of a vector of vectors
     std::vector<std::vector<std::vector<DA>>> hessian() const;                                      //!< Return the Hessian in the form of a vector of vectors of vectors
 #endif /* WITH_ALGEBRAICMATRIX */
+#ifdef WITH_EIGEN
+    Eigen::VectorX<T> toEigen() const;                                                              //!< Convert to Eigen vector
+#endif /* WITH_EIGEN */
 
     /***********************************************************************************
     *     Operator overloads
@@ -203,6 +213,9 @@ template<typename T> std::vector<std::vector<double>> linear(const AlgebraicVect
 template<typename T> std::vector<std::vector<DA>> jacobian(const AlgebraicVector<T> &obj);
 template<typename T> std::vector<std::vector<std::vector<DA>>> hessian(const AlgebraicVector<T> &obj);
 #endif /* WITH_ALGEBRAICMATRIX */
+#ifdef WITH_EIGEN
+template<typename T> Eigen::VectorX<T> toEigen(const AlgebraicVector<T> &obj);
+#endif /* WITH_EIGEN */
 template<typename T> AlgebraicVector<T> deriv(const AlgebraicVector<T> &obj, const unsigned int p);
 template<typename T> AlgebraicVector<T> integ(const AlgebraicVector<T> &obj, const unsigned int p);
 template<typename T> AlgebraicVector<T> pow(const AlgebraicVector<T> &obj, const int p);

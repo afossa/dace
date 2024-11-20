@@ -62,18 +62,18 @@ void dacepek(const DACEDA *ina, const unsigned int jj[], double *cjj)
     *cjj = daceGetCoefficient0(ina, daceEncode(jj));
 }
 
-/*! Compute absolute value of a DA object.
-   \param[in] ina Pointer to DA object to take absolute value of
-   \param[out] anorm Pointer where to store the absolute value
-   \deprecated Has been replaced by daceAbsoluteValue()
-   \sa daceAbsoluteValue()
+/*! Compute the maximum coefficient norm of a DA object.
+   \param[in] ina Pointer to DA object to compute the max norm of
+   \param[out] anorm Pointer where to store the max norm
+   \deprecated Has been replaced by daceMaxNorm()
+   \sa daceMaxNorm()
 */
 void daceabs(const DACEDA *ina, double *anorm)
 {
-    *anorm = daceAbsoluteValue(ina);
+    *anorm = daceMaxNorm(ina);
 }
 
-/*! Compute absolute value of a DA object.
+/*! Compute the norm of a DA object.
    \param[in] ina Pointer to DA object to take norm of
    \param[in] ityp Type of norm to take (see daceNorm())
    \param[out] anorm Pointer where to store the norm

@@ -20,37 +20,36 @@
 *******************************************************************************/
 
 /*
- * dace.h
+ * StatExtension.h
  *
- *  Created on: Jan 14, 2015
- *      Author: Dinamica Srl
+ *  Created on: Sep. 12, 2024
+ *      Author: Alberto Fossa'
  */
 
-#ifndef DINAMICA_DACE_H_
-#define DINAMICA_DACE_H_
+#ifndef DINAMICA_STATEXTENSION_H_
+#define DINAMICA_STATEXTENSION_H_
 
-// This file just brings in all the headers of the DACE related classes and functions
-#include "dace/config.h"
-#include "dace/PromotionTrait.h"
-#include "dace/MathExtension.h"
-#include "dace/DACEException.h"
-#include "dace/Monomial.h"
-#include "dace/Interval.h"
-#include "dace/DAFormatter.h"
-#include "dace/compiledDA.h"
+#include <vector>
+#include <utility>
+
 #include "dace/DA.h"
 #include "dace/AlgebraicVector.h"
 #ifdef WITH_ALGEBRAICMATRIX
-#include "dace/AlgebraicMatrix.h"
+    #include "dace/AlgebraicMatrix.h"
 #endif /* WITH_ALGEBRAICMATRIX */
-#include "dace/StatExtension.h"
 
-// include the template implementations here at the end after everything is properly defined
-#include "dace/compiledDA_t.h"
-#include "dace/DA_t.h"
-#include "dace/AlgebraicVector_t.h"
+namespace DACE {
+
+typedef std::vector<unsigned int> vectorui; //!< Shorthand notation for std::vector<unsigned int>.
+typedef std::vector<std::vector<unsigned int>> matrixui; //!< Shorthand notation for std::vector<std::vector<unsigned int>>.
+
+DACE_API matrixui getMultiIndices(const unsigned int no, const unsigned int nv); //!< Get all multi-indices of order no in nv variables
+DACE_API std::pair<matrixui, vectordb> getRawMoments(const DA& mgf, const unsigned int no = DA::getMaxOrder()); //!< Get raw moments up to order no
+DACE_API std::pair<matrixui, vectordb> getCentralMoments(const DA& mgf, const unsigned int no = DA::getMaxOrder()); //!< Get central moments up to order no
 #ifdef WITH_ALGEBRAICMATRIX
-#include "dace/AlgebraicMatrix_t.h"
+    DACE_API DA getMGFGaussian(const vectordb& mu, const matrixdb& cov); //!< Get the Taylor expansion of the moment generating function of a Gaussian distribution
 #endif /* WITH_ALGEBRAICMATRIX */
 
-#endif /* DINAMICA_DACE_H_ */
+}
+
+#endif /* DINAMICA_STATEXTENSION_H_ */

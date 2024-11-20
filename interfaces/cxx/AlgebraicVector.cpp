@@ -154,6 +154,18 @@ template<> std::vector<std::vector<std::vector<DA>>> AlgebraicVector<DA>::hessia
 }
 #endif /* WITH_ALGEBRAICMATRIX */
 
+#ifdef WITH_EIGEN
+template<class T> Eigen::VectorX<T> AlgebraicVector<T>::toEigen() const{
+/*! Convert the current AlgebraicVector<T> to Eigen::VectorX<T>.
+    \return An Eigen::VectorX<T>.
+ */
+    Eigen::VectorX<T> temp(this->size());
+    for (size_t i=0; i<this->size(); i++)
+        temp(i) = (*this)[i];
+    return temp;
+}
+#endif /* WITH_EIGEN */
+
 template<> AlgebraicVector<DA> AlgebraicVector<DA>::trim(const unsigned int min, const unsigned int max) const
 {
 /*! Returns an AlgebraicVector<DA> with all monomials of order less than min and greater than max removed (trimmed). The result is copied in a new AlgebraicVector<DA>.
@@ -365,7 +377,7 @@ template<> AlgebraicVector<DA> AlgebraicVector<DA>::identity(const size_t n){
  */
     AlgebraicVector<DA> temp(n);
     for(size_t i=0; i < n; i++){
-        temp[i] = DA((int)(i+1));}
+        temp[i] = DA((int)(i+1), 1.0);}
 
     return temp;
 }
@@ -454,6 +466,15 @@ template<> std::vector<std::vector<std::vector<DA>>> hessian(const AlgebraicVect
 #endif /* WITH_ALGEBRAICMATRIX */
     return obj.hessian();
 }
+
+#ifdef WITH_EIGEN
+template<class T> Eigen::VectorX<T> toEigen(const AlgebraicVector<T> &obj){
+/*! Convert the current AlgebraicVector<T> to Eigen::VectorX<T>.
+    \return An Eigen::VectorX<T>.
+ */
+    return obj.toEigen();
+}
+#endif /* WITH_EIGEN */
 
 template<> AlgebraicVector<DA> trim(const AlgebraicVector<DA> &obj, unsigned int min, unsigned int max){
 /*! Returns an AlgebraicVector<DA> with all monomials of order less than min and greater than max removed (trimmed). The result is copied in a new AlgebraicVector<DA>.

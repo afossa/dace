@@ -11,7 +11,6 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "/usr/bin/gcc",
         "CMAKE_CXX_COMPILER": "/usr/bin/g++",
-        "CMAKE_CXX_STANDARD": "20",
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/.local",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -31,7 +30,6 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "/usr/bin/gcc",
         "CMAKE_CXX_COMPILER": "/usr/bin/g++",
-        "CMAKE_CXX_STANDARD": "20",
         "CMAKE_INSTALL_PREFIX": "$env{JULIA_DEPOT_PATH}/dev/DACE_jll/override",
         "CMAKE_PREFIX_PATH": "$env{JULIA_DEPOT_PATH}/dev/libcxxwrap_julia_jll/override",
         "CMAKE_BUILD_TYPE": "Release",
@@ -53,7 +51,6 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "/usr/bin/gcc",
         "CMAKE_CXX_COMPILER": "/usr/bin/g++",
-        "CMAKE_CXX_STANDARD": "20",
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/.julia/dev/DACE_jll/override",
         "CMAKE_PREFIX_PATH": "$env{HOME}/.julia/dev/libcxxwrap_julia_jll/override",
         "CMAKE_BUILD_TYPE": "Release",

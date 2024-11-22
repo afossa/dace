@@ -62,6 +62,44 @@ template<> AlgebraicMatrix<double> AlgebraicVector<DA>::linear() const{
     }
     return out;
 }
+
+template<> AlgebraicMatrix<DA> AlgebraicVector<DA>::jacobian() const{
+/*! Return the Jacobian of an AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
+   \return An AlgebraicMatrix<DA> of dimension size by nvar, where size is the
+    size of the AlgebraicVector<T> considered and nvar is the number of variables defined
+    during the DACE initialization. Each row contains the gradient of the corresponding
+    DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+    const size_t size = this->size();
+    const int nvar = DA::getMaxVariables();
+
+    AlgebraicMatrix<DA> out(size, nvar);
+    for(size_t i=0; i<size; i++){
+          out.setrow( i, (*this)[i].gradient() );
+    }
+    return out;
+}
+
+template<> std::vector<AlgebraicMatrix<DA>> AlgebraicVector<DA>::hessian() const {
+/*! Return the Hessian of an AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
+   \return A vector of dimension size, where size is the size of the AlgebraicVector<T>
+    considered. Each entry is an nvar by nvar AlgebraicMatrix<T> containing the
+    Hessian of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+    const size_t size = this->size();
+
+    std::vector<AlgebraicMatrix<DA>> out(size);
+    for (size_t i = 0; i < size; i++) {
+          out[i] = (*this)[i].hessian();
+    }
+    return out;
+}
 #else
 template<> std::vector< std::vector<double> > AlgebraicVector<DA>::linear() const{
 /*! Return the linear part of a AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
@@ -79,7 +117,54 @@ template<> std::vector< std::vector<double> > AlgebraicVector<DA>::linear() cons
     }
     return out;
 }
+
+template<> std::vector< std::vector<DA> > AlgebraicVector<DA>::jacobian() const{
+/*! Return the Jacobian of an AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
+   \return A std::vector< std::vector<DA> >, where each std::vector<DA> contains
+    the gradient of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+    const size_t size = this->size();
+
+    std::vector< std::vector<DA> > out(size);
+    for(size_t i=0; i<size; i++){
+          out[i] = (*this)[i].gradient();
+    }
+    return out;
+}
+
+template<> std::vector<std::vector<std::vector<DA>>> AlgebraicVector<DA>::hessian() const {
+/*! Return the Hessian of an AlgebraicVector<T>. NOT DEFINED FOR TYPES OTHER THAN DA.
+   \return A vector of dimension size, where size is the size of the AlgebraicVector<T>
+    considered. Each entry is an nvar by nvar vector of vectors containing the
+    Hessian of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+    const size_t size = this->size();
+
+    std::vector<std::vector<std::vector<DA>>> out(size);
+    for (size_t i = 0; i < size; i++) {
+          out[i] = (*this)[i].hessian();
+    }
+    return out;
+}
 #endif /* WITH_ALGEBRAICMATRIX */
+
+#ifdef WITH_EIGEN
+template<class T> Eigen::VectorX<T> AlgebraicVector<T>::toEigen() const{
+/*! Convert the current AlgebraicVector<T> to Eigen::VectorX<T>.
+    \return An Eigen::VectorX<T>.
+ */
+    Eigen::VectorX<T> temp(this->size());
+    for (size_t i=0; i<this->size(); i++)
+        temp(i) = (*this)[i];
+    return temp;
+}
+#endif /* WITH_EIGEN */
 
 template<> AlgebraicVector<DA> AlgebraicVector<DA>::trim(const unsigned int min, const unsigned int max) const
 {
@@ -292,7 +377,7 @@ template<> AlgebraicVector<DA> AlgebraicVector<DA>::identity(const size_t n){
  */
     AlgebraicVector<DA> temp(n);
     for(size_t i=0; i < n; i++){
-        temp[i] = DA((int)(i+1));}
+        temp[i] = DA((int)(i+1), 1.0);}
 
     return temp;
 }
@@ -326,6 +411,70 @@ template<> std::vector< std::vector<double> > linear(const AlgebraicVector<DA> &
 #endif /* WITH_ALGEBRAICMATRIX */
     return obj.linear();
 }
+
+#ifdef WITH_ALGEBRAICMATRIX
+template<> AlgebraicMatrix<DA> jacobian(const AlgebraicVector<DA> &obj){
+/*! Return the Jacobian of an AlgebraicVector<T>.
+   \param[in] obj AlgebraicVector<T> to extract the Jacobian from
+   \return An AlgebraicMatrix<DA> of dimensions size by nvar, where
+    size is the size of the AlgebraicVector<T> considered and nvar is the
+    number of variables defined during the DACE initialization.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+   \sa AlgebraicVector<T>::jacobian
+ */
+#else
+template<> std::vector< std::vector<DA> > jacobian(const AlgebraicVector<DA> &obj){
+/*! Return the Jacobian of an AlgebraicVector<T>. Only defined for AlgebraicVector<DA>.
+   \param[in] obj AlgebraicVector<T> to extract the Jacobian from
+   \return A std::vector< std::vector<DA> > containing the gradients of
+    each component of the AlgebraicVector<DA> obj.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+   \sa AlgebraicVector<T>::jacobian
+ */
+#endif /* WITH_ALGEBRAICMATRIX */
+    return obj.jacobian();
+}
+
+#ifdef WITH_ALGEBRAICMATRIX
+template<> std::vector<AlgebraicMatrix<DA>> hessian(const AlgebraicVector<DA> &obj){
+/*! Return the Hessian of an AlgebraicVector<T>.
+   \param[in] obj AlgebraicVector<T> to extract the Hessian from
+   \return A vector of dimension size, where size is the size of the AlgebraicVector<T>
+    considered. Each entry is an nvar by nvar AlgebraicMatrix<T> containing the
+    Hessian of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+   \sa AlgebraicVector<T>::hessian
+ */
+#else
+template<> std::vector<std::vector<std::vector<DA>>> hessian(const AlgebraicVector<DA> &obj){
+/*! Return the Hessian of an AlgebraicVector<T>. Only defined for AlgebraicVector<DA>.
+   \param[in] obj AlgebraicVector<T> to extract the Hessian from
+   \return A vector of dimension size, where size is the size of the AlgebraicVector<T>
+    considered. Each entry is an nvar by nvar vector of vectors containing the
+    Hessian of the corresponding DA included in the original AlgebraicVector<T>.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+   \sa AlgebraicVector<T>::hessian
+ */
+#endif /* WITH_ALGEBRAICMATRIX */
+    return obj.hessian();
+}
+
+#ifdef WITH_EIGEN
+template<class T> Eigen::VectorX<T> toEigen(const AlgebraicVector<T> &obj){
+/*! Convert the current AlgebraicVector<T> to Eigen::VectorX<T>.
+    \return An Eigen::VectorX<T>.
+ */
+    return obj.toEigen();
+}
+#endif /* WITH_EIGEN */
 
 template<> AlgebraicVector<DA> trim(const AlgebraicVector<DA> &obj, unsigned int min, unsigned int max){
 /*! Returns an AlgebraicVector<DA> with all monomials of order less than min and greater than max removed (trimmed). The result is copied in a new AlgebraicVector<DA>.

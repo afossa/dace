@@ -43,6 +43,7 @@
 #ifdef WITH_ALGEBRAICMATRIX
 #include "dace/AlgebraicMatrix.h"
 #endif /* WITH_ALGEBRAICMATRIX */
+#include "dace/StatExtension.h"
 
 // include the template implementations here at the end after everything is properly defined
 #include "dace/compiledDA_t.h"

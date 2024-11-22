@@ -36,6 +36,11 @@
 #include <algorithm>
 #include <string>
 
+#ifdef WITH_EIGEN
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Eigenvalues>
+#endif /* WITH_EIGEN */
+
 // DACE classes
 #include "dace/PromotionTrait.h"
 #include "dace/AlgebraicVector.h"
@@ -88,7 +93,7 @@ template<typename U,typename V> AlgebraicVector<typename PromotionTrait< U, V >:
 }
 
 template<class T> void AlgebraicMatrix<T>::resize(int size) {
-/*! Resize AlgeraicMatrix to a square AlgebraicMatrix of size.
+/*! Resize AlgebraicMatrix to a square AlgebraicMatrix of size.
    The original values are kept at the original location if they are inside bounds of the new matrix.
    \param[in] size Size of the matrix (number of rows/columns).
    \sa AlgebraicMatrix<T>::resize
@@ -147,7 +152,7 @@ template<class T> T& AlgebraicMatrix<T>::at(const unsigned int irow, const unsig
    \return The element of the AlgebraicMatrix.
    \sa AlgebraicMatrix<T>::at
  */
-    if ( !(irow<(this->_nrows) )&&!( icol<(this->_ncols) ))
+    if ( !(irow<(this->_nrows)) || !(icol<(this->_ncols)) )
         throw std::runtime_error("DACE::AlgebraicMatrix<T>::at: matrix element position out of bound.");
 
     return this->_data[irow*this->_ncols + icol];
@@ -160,7 +165,7 @@ template<class T> const T& AlgebraicMatrix<T>::at(const unsigned int irow, const
    \return The element of the AlgebraicMatrix.
    \sa AlgebraicMatrix<T>::at
  */
-    if ( !(irow<(this->_nrows) )&&!( icol<(this->_ncols)) )
+    if ( !(irow<(this->_nrows)) || !(icol<(this->_ncols)) )
         throw std::runtime_error("DACE::AlgebraicMatrix<T>::at: matrix element position out of bound.");
 
     return this->_data[irow*this->_ncols + icol];
@@ -495,7 +500,6 @@ template<class T> AlgebraicMatrix<T> AlgebraicMatrix<T>::transpose() const {
 /*! \cond */
 /* Auxiliary functions for inverse and determinant computation, ignored in Doxygen Documentation */
 template<class T> unsigned int AlgebraicMatrix<T>::pivot(unsigned int& k, const unsigned int ii, const AlgebraicMatrix<T>& A, std::vector<unsigned int>& P, std::vector<unsigned int>& R, std::vector<unsigned int>& C1, std::vector<unsigned int>& C2, T& det) {
-    using std::abs;
 
     unsigned int im = 0;
     double t, m = 0;
@@ -505,7 +509,7 @@ template<class T> unsigned int AlgebraicMatrix<T>::pivot(unsigned int& k, const 
         if (P[i]==0){
             for (unsigned int j=0; j<n; j++){
                 if (P[j]==0){
-                    t = abs( A.at(R[i],j) );
+                    t = maxNorm(A.at(R[i],j));
                     if (!(t<m)){
                         im = i;
                         k = j;
@@ -634,6 +638,25 @@ template<class T> T AlgebraicMatrix<T>::det() const{
 }
 
 /***********************************************************************************
+*     Matrix norms
+************************************************************************************/
+template<class T> T AlgebraicMatrix<T>::frobenius() const {
+/*! Compute the Frobenius norm of an AlgebraicMatrix.
+    \return The Frobenius norm
+    \sa AlgebraicMatrix<T>::frobenius
+*/
+
+    using std::sqrt;
+    const size_t size = this->_data.size();
+    T tmp, sum = 0.0;
+    for(size_t i = 0; i < size; i++) {
+        tmp = this->_data[i];
+        sum += tmp * tmp;
+    }
+    return sqrt(sum);
+}
+
+/***********************************************************************************
 *     Coefficient access routines
 ************************************************************************************/
 template<class T> AlgebraicMatrix<double> AlgebraicMatrix<T>::cons() const{
@@ -738,6 +761,16 @@ template<typename U> std::istream& operator>> (std::istream &in, AlgebraicMatrix
     return in;
 }
 
+template<typename U> std::string AlgebraicMatrix<U>::toString() const{
+/*! Convert the current AlgebraicMatrix<T> to string.
+    \return A string.
+ */
+    std::ostringstream strs;
+    strs << *this << std::endl;
+
+    return strs.str();
+}
+
 /***********************************************************************************
 *     Matrix operations
 ************************************************************************************/
@@ -780,6 +813,76 @@ template<class T> AlgebraicMatrix<double> cons(const AlgebraicMatrix<T>& obj) {
  */
     return obj.cons();
 }
+
+#ifdef WITH_EIGEN
+
+/***********************************************************************************
+*     Constructors & Destructors
+************************************************************************************/
+
+template<typename T> AlgebraicMatrix<T>::AlgebraicMatrix(const Eigen::MatrixX<T>& data) : _nrows(data.rows()), _ncols(data.cols()) {
+/*! Constructor from Eigen::MatrixX.
+   \param[in] data Eigen::MatrixX to be converted into AlgebraicMatrix.
+ */
+    this->_data.resize(this->_nrows*this->_ncols);
+    for (unsigned int i=0; i<this->_nrows; i++)
+        for (unsigned int j=0; j<this->_ncols; j++)
+            this->_data[i*this->_ncols + j] = data(i,j);
+};
+
+/***********************************************************************************
+*     Element access routines
+************************************************************************************/
+
+template<class T> Eigen::MatrixX<T> AlgebraicMatrix<T>::toEigen() const {
+/*! Convert the current AlgebraicMatrix<T> to Eigen::MatrixX.
+   \return An Eigen::MatrixX.
+ */
+    Eigen::MatrixX<T> temp(this->_nrows, this->_ncols);
+    for (unsigned int i=0; i<this->_nrows; i++)
+        for (unsigned int j=0; j<this->_ncols; j++)
+            temp(i,j) = this->at(i,j);
+    return temp;
+}
+
+/***********************************************************************************
+*     Linear algebra routines backed by Eigen
+************************************************************************************/
+
+template<class T> std::pair<AlgebraicVector<T>, AlgebraicMatrix<T>> AlgebraicMatrix<T>::eigh() const{
+/*! Compute the eigenvalues and eigenvectors of a symmetric matrix.
+   \return A pair containing the eigenvalues and eigenvectors of the matrix.
+ */
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixX<T>> solver(this->toEigen());
+    AlgebraicVector<T> val = AlgebraicVector(solver.eigenvalues());
+    AlgebraicMatrix<T> vec = AlgebraicMatrix(solver.eigenvectors());
+
+    return std::make_pair(val, vec);
+}
+
+/***********************************************************************************
+ *     Functional style wrappers
+ ************************************************************************************/
+
+template<class T> Eigen::MatrixX<T> toEigen(const AlgebraicMatrix<T> &obj){
+/*! Convert the current AlgebraicMatrix<T> to Eigen::MatrixX.
+   \param[in] obj An AlgebraicMatrix
+   \return An Eigen::MatrixX that is the equivalent of the original AlgebraicMatrix.
+   \sa AlgebraicMatrix<T>::toEigen
+ */
+    return obj.toEigen();
+}
+
+template<class T> std::pair<AlgebraicVector<T>, AlgebraicMatrix<T>> eigh(const AlgebraicMatrix<T> &obj){
+/*! Compute the eigenvalues and eigenvectors of a symmetric matrix.
+   \param[in] obj An AlgebraicMatrix
+   \return A pair containing the eigenvalues and eigenvectors of the matrix.
+   \sa AlgebraicMatrix<T>::eigh
+ */
+    return obj.eigh();
+}
+
+#endif /* WITH_EIGEN */
 
 }
 #endif /* DINAMICA_DAMATRIX_T_H_ */

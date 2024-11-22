@@ -1,5 +1,5 @@
 # C++ interface source files
-set(SRCCXXIF AlgebraicVector.cpp DA.cpp DACEException.cpp DAFormatter.cpp MathExtension.cpp Monomial.cpp compiledDA.cpp)
+set(SRCCXXIF AlgebraicVector.cpp DA.cpp DACEException.cpp DAFormatter.cpp MathExtension.cpp Monomial.cpp compiledDA.cpp Interval.cpp StatExtension.cpp)
 
 if(WITH_ALGEBRAICMATRIX)
   list(APPEND SRCCXXIF "AlgebraicMatrix.cpp")
@@ -15,7 +15,14 @@ if(WIN32)
 endif(WIN32)
 
 # statically and dynamically linked C++ interface library with the corresponding c core object files compiled in
-add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx>)
+if(WITH_JULIA)
+  add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx> $<TARGET_OBJECTS:dacejulia>)
+  target_link_libraries(dace PUBLIC JlCxx::cxxwrap_julia)
+  target_link_libraries(dace PUBLIC JlCxx::cxxwrap_julia_stl)
+  target_compile_definitions(dace PUBLIC WITH_JULIA)
+else()
+  add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx>)
+endif()
 add_library(dace_s STATIC $<TARGET_OBJECTS:c_core_s> $<TARGET_OBJECTS:c_core_contrib_s> $<TARGET_OBJECTS:dacecxx_s>)
 
 target_include_directories(dace INTERFACE $<INSTALL_INTERFACE:include>)
@@ -25,6 +32,11 @@ if(WITH_PTHREAD)
   target_link_libraries(dace PUBLIC pthread)
   target_link_libraries(dace_s PUBLIC pthread)
 endif(WITH_PTHREAD)
+
+if(WITH_EIGEN)
+  target_compile_definitions(dace PUBLIC WITH_EIGEN)
+  target_compile_definitions(dace_s PUBLIC WITH_EIGEN)
+endif()
 
 # library versioning
 set_property(TARGET dace PROPERTY VERSION "${DACE_MAJOR_VERSION}.${DACE_MINOR_VERSION}.${DACE_PATCH_VERSION}")
@@ -74,3 +86,4 @@ configure_file("../../cmake/daceConfig.cmake"
 # install cmake package files
 install(EXPORT dace NAMESPACE dace:: DESTINATION lib/cmake/dace COMPONENT cmake)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/dace/daceConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/dace/daceConfigVersion.cmake" DESTINATION lib/cmake/dace COMPONENT cmake)
+

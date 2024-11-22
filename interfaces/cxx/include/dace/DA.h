@@ -39,6 +39,10 @@
 #include <vector>
 #include <stack>
 #include <initializer_list>
+#include <cmath>
+#ifdef WITH_EIGEN
+#include <eigen3/Eigen/Core>
+#endif /* WITH_EIGEN */
 
 #include "dace/dacecore.h"
 
@@ -52,6 +56,7 @@ class Monomial;
 class Interval;
 class DA;
 template<typename T> class AlgebraicVector;
+template<typename T> class AlgebraicMatrix;
 
 /*! Basic DA class representing a single polynomial. */
 class DACE_API DA
@@ -92,8 +97,8 @@ public:
 
     DA(DA &&da);                                                            //!< Move constructor
 
-    explicit DA(const int i, const double c = 1.0);                         //!< Constructor for DA identities
-    explicit DA(const unsigned int i, const double c = 1.0);                //!< Constructor for DA identities
+    explicit DA(const int i, const double c);                               //!< Constructor for DA identities
+    explicit DA(const unsigned int i, const double c);                      //!< Constructor for DA identities
     DA(const double c);                                                     //!< Constructor for DA constants
     ~DA() throw();                                                          //!< Destructor
 
@@ -103,11 +108,27 @@ public:
     double cons() const;                                                    //!< Get constant part of a DA
     AlgebraicVector<double> linear() const;                                 //!< Get linear part of a DA
     AlgebraicVector<DA> gradient() const;                                   //!< Gradient vector with respect to all independent DA variables
+#ifdef WITH_ALGEBRAICMATRIX
+    AlgebraicMatrix<DA> jacobian() const;                                   //!< Jacobian matrix with respect to all independent DA variables
+    AlgebraicMatrix<DA> hessian() const;                                    //!< Hessian matrix with respect to all independent DA variables
+#else
+    std::vector<std::vector<DA>> jacobian() const;                          //!< Jacobian matrix with respect to all independent DA variables
+    std::vector<std::vector<DA>> hessian() const;                           //!< Hessian matrix with respect to all independent DA variables
+#endif /* WITH_ALGEBRAICMATRIX */
     double getCoefficient(const std::vector<unsigned int> &jj) const;                //!< Get specific coefficient
     void setCoefficient(const std::vector<unsigned int> &jj, const double coeff);    //!< Set specific coefficient
     Monomial getMonomial(const unsigned int npos) const;                    //!< Get the Monomial at given position
-    void getMonomial(const unsigned int npos, Monomial &m) const;            //!< Extract the Monomial at given position
+    void getMonomial(const unsigned int npos, Monomial &m) const;           //!< Extract the Monomial at given position
     std::vector<Monomial> getMonomials() const;                             //!< Get std::vector of all non-zero Monomials
+
+    /********************************************************************************
+    *     Other extraction routines
+    *********************************************************************************/
+    inline const DA& conj() const { return *this; };                        //!< Get conjugate of the DA
+    inline const DA& real() const { return *this; };                        //!< Get real part of the DA
+    inline DA imag() const { return DA(0.0); };                             //!< Get imaginary part of the DA
+    inline bool isinf() const { return std::isinf((*this).cons()); }        //!< Check if the constant part is infinite
+    inline bool isnan() const { return std::isnan((*this).cons()); }        //!< Check if the constant part is NaN
 
     /********************************************************************************
     *     Assignments
@@ -151,9 +172,37 @@ public:
     friend DA DACE_API operator/(const double c, const DA &da);             //!< Division between a constant and a DA
 
     /********************************************************************************
+    *     Comparison operators (based on the constant part for now)
+    *********************************************************************************/
+
+    friend inline bool DACE_API operator==(const DA &da1, const DA &da2) { return da1.cons() == da2.cons(); };  //!< Equality comparison
+    friend inline bool DACE_API operator==(const DA &da, const double c) { return da.cons() == c; };            //!< Equality comparison
+    friend inline bool DACE_API operator==(const double c, const DA &da) { return c == da.cons(); };            //!< Equality comparison
+
+    friend inline bool DACE_API operator!=(const DA &da1, const DA &da2) { return da1.cons() != da2.cons(); };  //!< Inequality comparison
+    friend inline bool DACE_API operator!=(const DA &da, const double c) { return da.cons() != c; };            //!< Inequality comparison
+    friend inline bool DACE_API operator!=(const double c, const DA &da) { return c != da.cons(); };            //!< Inequality comparison
+
+    friend inline bool DACE_API operator<(const DA &da1, const DA &da2) { return da1.cons() < da2.cons(); };    //!< Less than comparison
+    friend inline bool DACE_API operator<(const DA &da, const double c) { return da.cons() < c; };              //!< Less than comparison
+    friend inline bool DACE_API operator<(const double c, const DA &da) { return c < da.cons(); };              //!< Less than comparison
+
+    friend inline bool DACE_API operator>(const DA &da1, const DA &da2) { return da1.cons() > da2.cons(); };    //!< Greater than comparison
+    friend inline bool DACE_API operator>(const DA &da, const double c) { return da.cons() > c; };              //!< Greater than comparison
+    friend inline bool DACE_API operator>(const double c, const DA &da) { return c > da.cons(); };              //!< Greater than comparison
+
+    friend inline bool DACE_API operator<=(const DA &da1, const DA &da2) { return da1.cons() <= da2.cons(); };  //!< Less than or equal comparison
+    friend inline bool DACE_API operator<=(const DA &da, const double c) { return da.cons() <= c; };            //!< Less than or equal comparison
+    friend inline bool DACE_API operator<=(const double c, const DA &da) { return c <= da.cons(); };            //!< Less than or equal comparison
+
+    friend inline bool DACE_API operator>=(const DA &da1, const DA &da2) { return da1.cons() >= da2.cons(); };  //!< Greater than or equal comparison
+    friend inline bool DACE_API operator>=(const DA &da, const double c) { return da.cons() >= c; };            //!< Greater than or equal comparison
+    friend inline bool DACE_API operator>=(const double c, const DA &da) { return c >= da.cons(); };            //!< Greater than or equal comparison
+
+    /********************************************************************************
     *     Math routines
     *********************************************************************************/
-    DA multiplyMonomials(const DA &da) const;                                //!< Multiply the DA with the argument da monomial by monomial (i.e. coefficient-wise)
+    DA multiplyMonomials(const DA &da) const;                               //!< Multiply the DA with the argument da monomial by monomial (i.e. coefficient-wise)
     DA divide(const unsigned int var, const unsigned int p = 1) const;      //!< Divide by an independent variable to some power
     DA deriv(const unsigned int i) const;                                   //!< Derivative with respect to given variable
     DA deriv(const std::vector<unsigned int> ind) const;                    //!< Derivative with respect to given variables
@@ -164,6 +213,8 @@ public:
     DA trunc() const;                                                       //!< Truncate the constant part to an integer
     DA round() const;                                                       //!< Round the constant part to an integer
     DA mod(const double p) const;                                           //!< Modulo of the constant part
+    DA abs() const;                                                         //!< Absolute value (Berz Eq. 2.52)
+    DA abs2() const;                                                        //!< Absolute value squared
     DA pow(const int p) const;                                              //!< Exponentiation to given (integer) power
     DA pow(const double p) const;                                           //!< Exponentiation to given double power
     DA root(const int p = 2) const;                                         //!< p-th root
@@ -206,7 +257,7 @@ public:
     *    Norm and estimation routines
     *********************************************************************************/
     unsigned int size() const;                                              //!< Number of non-zero coefficients
-    double abs() const;                                                     //!< Maximum absolute value of all coefficients
+    double maxNorm() const;                                                 //!< Max norm over all coefficients
     double norm(const unsigned int type = 0) const;                         //!< Different types of norms over all coefficients
     std::vector<double> orderNorm(const unsigned int var = 0, const unsigned int type = 0) const;
                                                                             //!< Different types of norms over coefficients of each order separately
@@ -262,6 +313,19 @@ public:
 DACE_API double cons(const DA &da);
 DACE_API AlgebraicVector<double> linear(const DA &da);
 DACE_API AlgebraicVector<DA> gradient(const DA &da);
+#ifdef WITH_ALGEBRAICMATRIX
+DACE_API AlgebraicMatrix<DA> jacobian(const DA &da);
+DACE_API AlgebraicMatrix<DA> hessian(const DA &da);
+#else
+DACE_API std::vector<std::vector<DA>> jacobian(const DA &da);
+DACE_API std::vector<std::vector<DA>> hessian(const DA &da);
+#endif /* WITH_ALGEBRAICMATRIX */
+
+inline DACE_API const DA& conj(const DA &da) { return da.conj(); };
+inline DACE_API const DA& real(const DA &da) { return da.real(); };
+inline DACE_API DA imag(const DA &da) { return da.imag(); };
+inline DACE_API bool isinf(const DA &da) { return da.isinf(); };
+inline DACE_API bool isnan(const DA &da) { return da.isnan(); };
 
 DACE_API DA divide(const DA &da, const unsigned int var, const unsigned int p = 1);
 DACE_API DA deriv(const DA &da, const unsigned int i);
@@ -272,6 +336,8 @@ DACE_API DA trim(const DA &da, const unsigned int min, const unsigned int max = 
 DACE_API DA trunc(const DA &da);
 DACE_API DA round(const DA &da);
 DACE_API DA mod(const DA &da, const double p);
+DACE_API DA abs(const DA &da);
+DACE_API DA abs2(const DA &da);
 DACE_API DA pow(const DA &da, const int p);
 DACE_API DA pow(const DA &da, const double p);
 DACE_API DA root(const DA &da, const int p = 2);
@@ -315,7 +381,7 @@ DACE_API DA LogGammaFunction(const DA &da);
 DACE_API DA PsiFunction(const unsigned int n, const DA &da);
 
 DACE_API unsigned int size(const DA &da);
-DACE_API double abs(const DA &da);
+DACE_API double maxNorm(const DA &da);
 DACE_API double norm(const DA &da, unsigned int type = 0);
 DACE_API std::vector<double> orderNorm(const DA &da, unsigned int var = 0, unsigned int type = 0);
 DACE_API std::vector<double> estimNorm(const DA &da, unsigned int var = 0, unsigned int type = 0, unsigned int nc = DA::getMaxOrder());
@@ -356,6 +422,35 @@ public:
     friend DACE_API std::ostream& operator<<(std::ostream &out, const storedDA &sda);      //!< Output to C++ stream in binary form
 };
 
-}
+} // namespace DACE
+
+
+#ifdef WITH_EIGEN
+
+/*! Add support for DACE::DA as custom scalar type in Eigen.
+ *  See https://eigen.tuxfamily.org/dox/TopicCustomizing_CustomScalar.html
+ */
+namespace Eigen {
+
+template<> struct NumTraits<DACE::DA> : NumTraits<double> {
+    typedef DACE::DA Real;
+    typedef DACE::DA NonInteger;
+    typedef DACE::DA Literal;
+    typedef DACE::DA Nested;
+
+    enum {
+        IsComplex = 0,
+        IsInteger = 0,
+        IsSigned = 1,
+        RequireInitialization = 1,
+        ReadCost = 1,
+        AddCost = 1,
+        MulCost = 1
+    };
+};
+
+} // namespace Eigen
+
+#endif /* WITH_EIGEN */
 
 #endif /* DINAMICA_DA_H_ */

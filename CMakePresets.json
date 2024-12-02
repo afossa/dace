@@ -2,7 +2,7 @@
   "version": 8,
   "configurePresets": [
     {
-      "name": "cpp-linux",
+      "name": "cpp-unix",
       "hidden": false,
       "displayName": "DACE C++",
       "generator": "Ninja",
@@ -65,9 +65,9 @@
   ],
   "buildPresets": [
     {
-      "name": "cpp-linux",
+      "name": "cpp-unix",
       "displayName": "DACE C++",
-      "configurePreset": "cpp-linux"
+      "configurePreset": "cpp-unix"
     },
     {
       "name": "julia-linux",

@@ -28,6 +28,7 @@
 
 // C++ stdlib classes used only internally in this implementation
 #include <algorithm>
+#include <set>
 
 // DACE classes
 #include "dace/config.h"
@@ -368,9 +369,9 @@ template<> AlgebraicVector<DA> AlgebraicVector<DA>::invert() const{
 *     Static factory routines
 *********************************************************************************/
 template<> AlgebraicVector<DA> AlgebraicVector<DA>::identity(const size_t n){
-/*! Return the DA identity of dimension n.
-   \param[in] n The dimendion of the identity.
-   \return AlgebraicVector<DA> containing the DA identity in n dimensions
+/*! Return the first n DA identities.
+   \param[in] n The number of identities.
+   \return AlgebraicVector<DA> containing the first n DA identities.
    \note This DA specific function is only available in AlgebraicVector<DA>.
     When called on AlgebraicVectors of other types (e.g. double), a compiler
     error will be the result.
@@ -380,6 +381,36 @@ template<> AlgebraicVector<DA> AlgebraicVector<DA>::identity(const size_t n){
         temp[i] = DA((int)(i+1), 1.0);}
 
     return temp;
+}
+
+template<> AlgebraicVector<DA> AlgebraicVector<DA>::identity(const std::vector<unsigned int> &jj, const bool sf){
+/*! Return the DA identities at indices jj, optionally sorting them and filling the output with zeros.
+   \param[in] jj Vector of indices where the identities are to be placed.
+   \param[in] sf If true, identities are sorted and duplicate indices are discarted.
+    The output array is of size DA::getMaxVariables() with the identities placed at indices jj.
+    If false (the default), it returns a vector of size jj with the identities placed as they are in input.
+   \return AlgebraicVector<DA> containing the DA identities at indices jj.
+   \note This DA specific function is only available in AlgebraicVector<DA>.
+    When called on AlgebraicVectors of other types (e.g. double), a compiler
+    error will be the result.
+ */
+
+    if (sf) {
+        const size_t n = DA::getMaxVariables();
+        AlgebraicVector<DA> temp(n);
+        std::set<unsigned int> s(jj.begin(), jj.end());
+        for (unsigned int j : s) {
+            temp[j-1] = DA(j, 1.0); // DA identities are indexed from 1
+        }
+        return temp;
+    } else {
+        const size_t n = jj.size();
+        AlgebraicVector<DA> temp(n);
+        for (size_t i=0; i < n; i++) {
+            temp[i] = DA(jj[i], 1.0);
+        }
+        return temp;
+    }
 }
 
 /***********************************************************************************

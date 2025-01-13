@@ -169,7 +169,8 @@ public:
     /********************************************************************************
     *     Static factory routines
     *********************************************************************************/
-    static AlgebraicVector<DA> identity(const size_t n = DA::getMaxVariables());              //!< Create an AlgebraicVector<DA> containing the identity in n dimensions. DA only.
+    static AlgebraicVector<DA> identity(const size_t n = DA::getMaxVariables());                        //!< Create an AlgebraicVector<DA> containing the first n DA identities. DA only.
+    static AlgebraicVector<DA> identity(const std::vector<unsigned int> &jj, const bool sf = false);    //!< Create an AlgebraicVector<DA> containing the identities at indices jj. DA only.
 
     /***********************************************************************************
     *     Input/Output routines
@@ -269,6 +270,7 @@ template<> DACE_API compiledDA AlgebraicVector<DA>::compile() const;
 template<> DACE_API AlgebraicVector<DA> AlgebraicVector<DA>::plug(const unsigned int var, const double val) const;
 template<> DACE_API AlgebraicVector<DA> AlgebraicVector<DA>::invert() const;
 template<> DACE_API AlgebraicVector<DA> AlgebraicVector<DA>::identity(const size_t n);
+template<> DACE_API AlgebraicVector<DA> AlgebraicVector<DA>::identity(const std::vector<unsigned int> &jj, const bool sf);
 template<> DACE_API AlgebraicVector<DA> trim(const AlgebraicVector<DA> &obj, unsigned int min, unsigned int max);
 template<> DACE_API AlgebraicVector<DA> deriv(const AlgebraicVector<DA> &obj, const unsigned int p);
 template<> DACE_API AlgebraicVector<DA> integ(const AlgebraicVector<DA> &obj, const unsigned int p);

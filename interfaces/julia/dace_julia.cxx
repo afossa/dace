@@ -105,6 +105,11 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
                 std::vector<unsigned int> jjvec(jj.begin(), jj.end());
                 return da.getCoefficient(jjvec);
             })
+        .method("setCoefficient!", &DA::setCoefficient)
+        .method("setCoefficient!", [](DA& da, jlcxx::ArrayRef<unsigned int> jj, const double coeff) {
+                std::vector<unsigned int> jjvec(jj.begin(), jj.end());
+                return da.setCoefficient(jjvec, coeff);
+            })
         .method("multiplyMonomials", &DA::multiplyMonomials)
         .method("sqr", &DA::sqr)
         .method("cons", &DA::cons)
@@ -114,6 +119,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     // jlcxx::stl::apply_stl<DA>(mod);
 
     // DA specific methods
+    mod.method("getMonomial", [](const DA& da, const unsigned int npos)->Monomial { return da.getMonomial(npos); },
+        "Get the monomial of `arg1` at position `arg2`");
     mod.method("getMonomials", [](const DA& da)->std::vector<Monomial> { return da.getMonomials(); },
         "Get vector of all non-zero Monomials for DA `arg1`");
     mod.method("deriv", [](const DA& da, const unsigned int i) { return da.deriv(i); },

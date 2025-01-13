@@ -74,6 +74,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .method("order", &Monomial::order)
         .method("toString", &Monomial::toString);
 
+    mod.method("getCoefficient", [](const Monomial& m) { return m.m_coeff; }, "Get the coefficient of `arg1`");
+    mod.method("getExponents", [](const Monomial& m) { return m.m_jj; }, "Get the exponents of `arg1`");
+
     // override methods in Base
     mod.set_override_module(jl_base_module);
     mod.method("print", [](const Monomial& m) { std::cout << m.toString(); });
@@ -100,16 +103,16 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .constructor<>()
         .constructor<const double>()
         .constructor<const int, const double>()
-        .method("getCoefficient", &DA::getCoefficient)
+        .method("getCoefficient", &DA::getCoefficient, "Get the coefficient of `arg1` with exponents `arg2`")
         .method("getCoefficient", [](const DA& da, jlcxx::ArrayRef<unsigned int> jj) {
                 std::vector<unsigned int> jjvec(jj.begin(), jj.end());
                 return da.getCoefficient(jjvec);
-            })
-        .method("setCoefficient!", &DA::setCoefficient)
+            }, "Get the coefficient of `arg1` with exponents `arg2`")
+        .method("setCoefficient!", &DA::setCoefficient, "Set the coefficient of `arg1` with exponents `arg2` to `arg3`")
         .method("setCoefficient!", [](DA& da, jlcxx::ArrayRef<unsigned int> jj, const double coeff) {
                 std::vector<unsigned int> jjvec(jj.begin(), jj.end());
                 return da.setCoefficient(jjvec, coeff);
-            })
+            }, "Set the coefficient of `arg1` with exponents `arg2` to `arg3`")
         .method("multiplyMonomials", &DA::multiplyMonomials)
         .method("sqr", &DA::sqr)
         .method("cons", &DA::cons)

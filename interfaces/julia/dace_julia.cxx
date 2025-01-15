@@ -227,7 +227,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
     // static factory routines
     mod.method("random", [](const double cm) { return DA::random(cm); });
-    mod.method("identity", [](const unsigned int var) { return DA::identity(var); });
+    // mod.method("identity", [](const unsigned int var) { return DA::identity(var); });
 
 
     /***********************************************************************************
@@ -307,12 +307,12 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.unset_override_module();
 
     // static factory routines
-    mod.method("identities", [](const size_t n) { return AlgebraicVector<DA>::identity(n); },
+    mod.method("identity", [](const size_t n) { return AlgebraicVector<DA>::identity(n); },
             "Return the first `arg1` DA identities.");
-    mod.method("identities", [](const std::vector<unsigned int> &jj, const bool sf) {
+    mod.method("identity", [](const std::vector<unsigned int> &jj, const bool sf) {
                 return AlgebraicVector<DA>::identity(jj, sf);
             }, "Return the DA identities at positions `arg1`, optionally sorting them if `arg2` is `true`.");
-    mod.method("identities", [](jlcxx::ArrayRef<unsigned int> jj, const bool sf) {
+    mod.method("identity", [](jlcxx::ArrayRef<unsigned int> jj, const bool sf) {
                 std::vector<unsigned int> jjvec(jj.begin(), jj.end());
                 return AlgebraicVector<DA>::identity(jjvec, sf);
             }, "Return the DA identities at positions `arg1`, optionally sorting them if `arg2` is `true`.");

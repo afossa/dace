@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.6.0)
+cmake_minimum_required (VERSION 3.10.0)
 include(CMakeDependentOption)
 
 # since MacOS 10.14 (XCode 10.0), default includes are no longer installed to /usr/include or /usr/local/include
@@ -27,7 +27,6 @@ elseif(APPLE)
   cmake_policy(SET CMP0042 NEW)
   cmake_policy(SET CMP0068 NEW)
   set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-  set(CMAKE_INSTALL_NAME_DIR "@loader_path")
 endif(WIN32)
 
 

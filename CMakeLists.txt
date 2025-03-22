@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.10.0)
+cmake_minimum_required (VERSION 3.10)
 include(CMakeDependentOption)
 
 # since MacOS 10.14 (XCode 10.0), default includes are no longer installed to /usr/include or /usr/local/include
@@ -126,7 +126,7 @@ configure_file(core/include/dace/config.h.in core/include/dace/config.h)
 
 # globally set the include directory for the C core headers
 include_directories("core/include")
-include_directories("${CMAKE_BINARY_DIR}/core/include")
+include_directories("${PROJECT_BINARY_DIR}/core/include")
 # globally set the include directory for the C++ interface headers
 include_directories("interfaces/cxx/include")
 if(WITH_EIGEN)
@@ -188,9 +188,9 @@ elseif(APPLE)
   set(CPACK_GENERATOR "TGZ;productbuild")
   set(CPACK_PACKAGE_VENDOR "DACEDevelopmentGroup")    # no spaces allowed for packagebuild
   set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README-MAC.rtf")
-  file(COPY "${CMAKE_SOURCE_DIR}/LICENSE" DESTINATION "${CMAKE_BINARY_DIR}")
-  file(RENAME "${CMAKE_BINARY_DIR}/LICENSE" "${CMAKE_BINARY_DIR}/LICENSE.txt")
-  set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_BINARY_DIR}/LICENSE.txt")
+  file(COPY "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "${PROJECT_BINARY_DIR}")
+  file(RENAME "${PROJECT_BINARY_DIR}/LICENSE" "${PROJECT_BINARY_DIR}/LICENSE.txt")
+  set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_BINARY_DIR}/LICENSE.txt")
 elseif(UNIX)
   set(CPACK_GENERATOR "TGZ;DEB")
   set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")

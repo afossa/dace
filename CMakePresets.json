@@ -4,13 +4,32 @@
     {
       "name": "cpp-linux",
       "hidden": false,
-      "displayName": "DACE C++",
+      "displayName": "DACE C++ (Linux)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "$env{HOME}/.local",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/gcc",
-        "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+        "CMAKE_C_COMPILER": "gcc-14",
+        "CMAKE_CXX_COMPILER": "g++-14",
+        "CMAKE_INSTALL_PREFIX": "$env{HOME}/.local",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "WITH_PTHREAD": "ON",
+        "WITH_ALGEBRAICMATRIX": "ON",
+        "WITH_EIGEN": "ON",
+        "WITH_JULIA": "OFF"
+      }
+    },
+    {
+      "name": "cpp-macos",
+      "hidden": false,
+      "displayName": "DACE C++ (MacOS)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "$env{HOME}/.local",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/.local",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -23,13 +42,13 @@
     {
       "name": "julia-linux",
       "hidden": false,
-      "displayName": "DACE Julia",
+      "displayName": "DACE Julia (Linux)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "$env{JULIA_DEPOT_PATH}/dev/DACE_jll/override",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/gcc",
-        "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+        "CMAKE_C_COMPILER": "gcc-14",
+        "CMAKE_CXX_COMPILER": "g++-14",
         "CMAKE_INSTALL_PREFIX": "$env{JULIA_DEPOT_PATH}/dev/DACE_jll/override",
         "CMAKE_PREFIX_PATH": "$env{JULIA_DEPOT_PATH}/dev/libcxxwrap_julia_jll/override",
         "CMAKE_BUILD_TYPE": "Release",
@@ -44,13 +63,13 @@
     {
       "name": "julia-macos",
       "hidden": false,
-      "displayName": "DACE Julia MacOS",
+      "displayName": "DACE Julia (MacOS)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "$env{HOME}/.julia/dev/DACE_jll/override",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/gcc",
-        "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/.julia/dev/DACE_jll/override",
         "CMAKE_PREFIX_PATH": "$env{HOME}/.julia/dev/libcxxwrap_julia_jll/override",
         "CMAKE_BUILD_TYPE": "Release",
@@ -66,17 +85,22 @@
   "buildPresets": [
     {
       "name": "cpp-linux",
-      "displayName": "DACE C++",
+      "displayName": "DACE C++ (Linux)",
       "configurePreset": "cpp-linux"
     },
     {
+      "name": "cpp-macos",
+      "displayName": "DACE C++ (MacOS)",
+      "configurePreset": "cpp-macos"
+    },
+    {
       "name": "julia-linux",
-      "displayName": "DACE Julia",
+      "displayName": "DACE Julia (Linux)",
       "configurePreset": "julia-linux"
     },
     {
       "name": "julia-macos",
-      "displayName": "DACE Julia",
+      "displayName": "DACE Julia (MacOS)",
       "configurePreset": "julia-macos"
     }
   ]

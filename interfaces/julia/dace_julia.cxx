@@ -74,6 +74,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .method("order", &Monomial::order)
         .method("toString", &Monomial::toString);
 
+    mod.method("getCoefficient", [](const Monomial& m) { return m.m_coeff; }, "Get the coefficient of `arg1`");
+    mod.method("getExponents", [](const Monomial& m) { return m.m_jj; }, "Get the exponents of `arg1`");
+
     // override methods in Base
     mod.set_override_module(jl_base_module);
     mod.method("print", [](const Monomial& m) { std::cout << m.toString(); });
@@ -100,11 +103,16 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
         .constructor<>()
         .constructor<const double>()
         .constructor<const int, const double>()
-        .method("getCoefficient", &DA::getCoefficient)
+        .method("getCoefficient", &DA::getCoefficient, "Get the coefficient of `arg1` with exponents `arg2`")
         .method("getCoefficient", [](const DA& da, jlcxx::ArrayRef<unsigned int> jj) {
                 std::vector<unsigned int> jjvec(jj.begin(), jj.end());
                 return da.getCoefficient(jjvec);
-            })
+            }, "Get the coefficient of `arg1` with exponents `arg2`")
+        .method("setCoefficient!", &DA::setCoefficient, "Set the coefficient of `arg1` with exponents `arg2` to `arg3`")
+        .method("setCoefficient!", [](DA& da, jlcxx::ArrayRef<unsigned int> jj, const double coeff) {
+                std::vector<unsigned int> jjvec(jj.begin(), jj.end());
+                return da.setCoefficient(jjvec, coeff);
+            }, "Set the coefficient of `arg1` with exponents `arg2` to `arg3`")
         .method("multiplyMonomials", &DA::multiplyMonomials)
         .method("sqr", &DA::sqr)
         .method("cons", &DA::cons)
@@ -114,6 +122,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     // jlcxx::stl::apply_stl<DA>(mod);
 
     // DA specific methods
+    mod.method("getMonomial", [](const DA& da, const unsigned int npos)->Monomial { return da.getMonomial(npos); },
+        "Get the monomial of `arg1` at position `arg2`");
     mod.method("getMonomials", [](const DA& da)->std::vector<Monomial> { return da.getMonomials(); },
         "Get vector of all non-zero Monomials for DA `arg1`");
     mod.method("deriv", [](const DA& da, const unsigned int i) { return da.deriv(i); },
@@ -217,7 +227,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
     // static factory routines
     mod.method("random", [](const double cm) { return DA::random(cm); });
-    mod.method("identity", [](const unsigned int var) { return DA::identity(var); });
+    // mod.method("identity", [](const unsigned int var) { return DA::identity(var); });
 
 
     /***********************************************************************************
@@ -295,6 +305,17 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
     mod.method("/", [](const AlgebraicVector<DA>& vec, const DA& scalar) { return vec / scalar; });
     mod.method("/", [](const DA& scalar, const AlgebraicVector<DA>& vec) { return scalar / vec; });
     mod.unset_override_module();
+
+    // static factory routines
+    mod.method("identity", [](const size_t n) { return AlgebraicVector<DA>::identity(n); },
+            "Return the first `arg1` DA identities.");
+    mod.method("identity", [](const std::vector<unsigned int> &jj, const bool sf) {
+                return AlgebraicVector<DA>::identity(jj, sf);
+            }, "Return the DA identities at positions `arg1`, optionally sorting them if `arg2` is `true`.");
+    mod.method("identity", [](jlcxx::ArrayRef<unsigned int> jj, const bool sf) {
+                std::vector<unsigned int> jjvec(jj.begin(), jj.end());
+                return AlgebraicVector<DA>::identity(jjvec, sf);
+            }, "Return the DA identities at positions `arg1`, optionally sorting them if `arg2` is `true`.");
 
 
     /***********************************************************************************

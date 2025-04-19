@@ -3,10 +3,10 @@ cmake_minimum_required (VERSION 3.10)
 # since MacOS 10.14 (XCode 10.0), default includes are no longer installed to /usr/include or /usr/local/include
 # the SDK to use must be specified explicitly in CMAKE_OSX_SYSROOT as it seems at least cmake 3.12.4 does not find it automatically if left empty
 # this must happen before project()
-if(APPLE AND NOT DEFINED ENV{SDKROOT})
-  execute_process(COMMAND xcodebuild -sdk macosx -version Path OUTPUT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set(CMAKE_OSX_SYSROOT "${RES}" CACHE PATH "Build against headers and libraries in this SDK.")
-endif(APPLE AND NOT DEFINED ENV{SDKROOT})
+# if(APPLE AND NOT DEFINED ENV{SDKROOT})
+#   execute_process(COMMAND xcodebuild -sdk macosx -version Path OUTPUT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
+#   set(CMAKE_OSX_SYSROOT "${RES}" CACHE PATH "Build against headers and libraries in this SDK.")
+# endif(APPLE AND NOT DEFINED ENV{SDKROOT})
 
 # global OS specific settings
 if(WIN32)
@@ -140,6 +140,9 @@ if(WITH_JULIA)
   target_compile_definitions(dace PUBLIC WITH_JULIA)
 else()
   add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx>)
+endif()
+if(WITH_EIGEN)
+  target_compile_definitions(dace PUBLIC WITH_EIGEN)
 endif()
 add_library(dace_s STATIC $<TARGET_OBJECTS:c_core_s> $<TARGET_OBJECTS:c_core_contrib_s> $<TARGET_OBJECTS:dacecxx_s>)
 

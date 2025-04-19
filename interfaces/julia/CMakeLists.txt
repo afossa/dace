@@ -1,4 +1,5 @@
 set(SRCJULIAIF dace_julia.cxx)
+include_directories(include ${PROJECT_BINARY_DIR}/core/include ${PROJECT_SOURCE_DIR}/core/include ${PROJECT_SOURCE_DIR}/interfaces/cxx/include)
 
 option(CUSTOM_EXIT "Use a custom exit function in the Julia interface" OFF)
 
@@ -7,9 +8,9 @@ set_target_properties(dacejulia PROPERTIES POSITION_INDEPENDENT_CODE True)
 target_link_libraries(dacejulia PUBLIC JlCxx::cxxwrap_julia)
 target_link_libraries(dacejulia PUBLIC JlCxx::cxxwrap_julia_stl)
 if(WIN32)
-    target_compile_definitions(dacejulia PRIVATE "DACE_API=__declspec(dllexport)")
+  target_compile_definitions(dacejulia PRIVATE "DACE_API=__declspec(dllexport)")
 endif(WIN32)
 if(CUSTOM_EXIT)
-    message(STATUS "Enabling custom exit function")
-    target_compile_definitions(dacejulia PRIVATE "CUSTOM_EXIT")
+  message(STATUS "Enabling custom exit function")
+  target_compile_definitions(dacejulia PRIVATE "CUSTOM_EXIT")
 endif(CUSTOM_EXIT)

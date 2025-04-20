@@ -28,8 +28,10 @@ set(DACE_PATCH_VERSION 0)
 # CMake includes
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
-include(CheckSafeStrings)
 include(CMakePackageConfigHelpers)
+if(NOT MINGW)
+  include(CheckSafeStrings)
+endif()
 
 
 # Set C/C++ standard (adapted https://github.com/ceres-solver/ceres-solver/blob/master/CMakeLists.txt)
@@ -116,7 +118,11 @@ endif(DACE_MEMORY_MODEL_U STREQUAL "STATIC")
 
 
 # Check platform specific functions and pass options by configuring config.h file in core
-check_safe_strings(HAVE_SAFE_STRINGS)
+if(MINGW)
+  set(HAVE_SAFE_STRINGS FALSE)
+else()
+  check_safe_strings(HAVE_SAFE_STRINGS)
+endif()
 configure_file(core/include/dace/config.h.in core/include/dace/config.h)
 
 

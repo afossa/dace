@@ -128,8 +128,6 @@ public:
     inline const DA& conj() const { return *this; };                        //!< Get conjugate of the DA
     inline const DA& real() const { return *this; };                        //!< Get real part of the DA
     inline DA imag() const { return DA(0.0); };                             //!< Get imaginary part of the DA
-    inline bool isinf() const { return std::isinf((*this).cons()); }        //!< Check if the constant part is infinite
-    inline bool isnan() const { return std::isnan((*this).cons()); }        //!< Check if the constant part is NaN
 
     /********************************************************************************
     *     Assignments
@@ -327,8 +325,6 @@ DACE_API std::vector<std::vector<DA>> hessian(const DA &da);
 inline DACE_API const DA& conj(const DA &da) { return da.conj(); };
 inline DACE_API const DA& real(const DA &da) { return da.real(); };
 inline DACE_API DA imag(const DA &da) { return da.imag(); };
-inline DACE_API bool isinf(const DA &da) { return da.isinf(); };
-inline DACE_API bool isnan(const DA &da) { return da.isnan(); };
 
 DACE_API DA divide(const DA &da, const unsigned int var, const unsigned int p = 1);
 DACE_API DA deriv(const DA &da, const unsigned int i);

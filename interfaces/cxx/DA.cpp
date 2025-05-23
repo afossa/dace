@@ -2074,52 +2074,6 @@ AlgebraicVector<DA> gradient(const DA &da) {
 
     return da.gradient();}
 
-
-#ifdef WITH_ALGEBRAICMATRIX
-AlgebraicMatrix<DA> jacobian(const DA &da) {
-/*! Compute the Jacobian of a DA object. This is the
-    same as DA::gradient except for the output type.
-   \param[in] da the given DA object.
-   \return An AlgebraicMatrix<DA> containing the partial derivatives
-    of the DA object with respect to all independent DA variables.
-   \throw DACE::DACEException
- */
-
-    return da.jacobian();}
-
-AlgebraicMatrix<DA> hessian(const DA &da) {
-/*! Compute the Hessian of a DA object.
-   \param[in] da the given DA object.
-   \return An AlgebraicMatrix<DA> containing the second derivatives
-    of the DA object with respect to all independent DA variables.
-   \throw DACE::DACEException
- */
-
-    return da.hessian();}
-#else
-std::vector<std::vector<DA>> jacobian(const DA &da) {
-/*! Compute the Jacobian of a DA object. This is the
-    same as DA::gradient except for the output type.
-   \param[in] da the given DA object.
-   \return A vector of vectors containing the partial derivatives
-    of the DA object with respect to all independent DA variables.
-   \throw DACE::DACEException
- */
-
-    return da.jacobian();}
-
-std::vector<std::vector<DA>> hessian(const DA &da) {
-/*! Compute the Hessian of a DA object.
-   \param[in] da the given DA object.
-   \return An AlgebraicMatrix<DA> containing the second derivatives
-    of the DA object with respect to all independent DA variables.
-   \throw DACE::DACEException
- */
-
-    return da.hessian();}
-#endif /* WITH_ALGEBRAICMATRIX */
-
-
 DA divide(const DA &da, const unsigned int var, const unsigned int p){
 /*! Divide by independent variable var raised to power p.
     The result is copied in a new DA object.

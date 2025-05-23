@@ -165,6 +165,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod) {
 
     // override methods in Base
     mod.set_override_module(jl_base_module);
+    mod.method("isnan", [](const DA& da)->bool { return da.isnan(); });
+    mod.method("isinf", [](const DA& da)->bool { return da.isinf(); });
     // arithmetic operators
     mod.method("+", [](const DA& da1, const DA& da2) { return da1 + da2; });
     mod.method("+", [](const DA& da, const double c) { return da + c; });

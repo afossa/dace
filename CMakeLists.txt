@@ -3,10 +3,10 @@ cmake_minimum_required (VERSION 3.10)
 # since MacOS 10.14 (XCode 10.0), default includes are no longer installed to /usr/include or /usr/local/include
 # the SDK to use must be specified explicitly in CMAKE_OSX_SYSROOT as it seems at least cmake 3.12.4 does not find it automatically if left empty
 # this must happen before project()
-if(APPLE AND NOT DEFINED ENV{SDKROOT})
-  execute_process(COMMAND xcodebuild -sdk macosx -version Path OUTPUT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set(CMAKE_OSX_SYSROOT "${RES}" CACHE PATH "Build against headers and libraries in this SDK.")
-endif(APPLE AND NOT DEFINED ENV{SDKROOT})
+# if(APPLE AND NOT DEFINED ENV{SDKROOT})
+#   execute_process(COMMAND xcodebuild -sdk macosx -version Path OUTPUT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
+#   set(CMAKE_OSX_SYSROOT "${RES}" CACHE PATH "Build against headers and libraries in this SDK.")
+# endif(APPLE AND NOT DEFINED ENV{SDKROOT})
 
 # global OS specific settings
 if(WIN32)
@@ -14,9 +14,7 @@ if(WIN32)
 elseif(APPLE)
   cmake_policy(SET CMP0042 NEW)
   cmake_policy(SET CMP0068 NEW)
-  # build libraries use full hard-coded binary path, install libraries replace it by @rpath
-  set(CMAKE_MACOSX_RPATH OFF)
-  set(CMAKE_INSTALL_NAME_DIR "@rpath")
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 endif(WIN32)
 
 
@@ -30,8 +28,10 @@ set(DACE_PATCH_VERSION 0)
 # CMake includes
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
-include(CheckSafeStrings)
 include(CMakePackageConfigHelpers)
+if(NOT MINGW)
+  include(CheckSafeStrings)
+endif()
 
 
 # Set C/C++ standard (adapted https://github.com/ceres-solver/ceres-solver/blob/master/CMakeLists.txt)
@@ -45,7 +45,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON CACHE BOOL "")
 mark_as_advanced(CMAKE_C_STANDARD_REQUIRED)
 
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard (minimum 14)" FORCE)
+  set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard (minimum 17)" FORCE)
   set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 14 17 20)  # options shown in CMake GUI
 endif(NOT CMAKE_CXX_STANDARD)
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "")
@@ -118,7 +118,11 @@ endif(DACE_MEMORY_MODEL_U STREQUAL "STATIC")
 
 
 # Check platform specific functions and pass options by configuring config.h file in core
-check_safe_strings(HAVE_SAFE_STRINGS)
+if(MINGW)
+  set(HAVE_SAFE_STRINGS FALSE)
+else()
+  check_safe_strings(HAVE_SAFE_STRINGS)
+endif()
 configure_file(core/include/dace/config.h.in core/include/dace/config.h)
 
 
@@ -135,7 +139,17 @@ add_subdirectory(interfaces/cxx)
 
 
 # statically and dynamically linked DACE library with C core and C++ interface
-add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx>)
+if(WITH_JULIA)
+  add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx> $<TARGET_OBJECTS:dacejulia>)
+  target_link_libraries(dace PUBLIC JlCxx::cxxwrap_julia)
+  target_link_libraries(dace PUBLIC JlCxx::cxxwrap_julia_stl)
+  target_compile_definitions(dace PUBLIC WITH_JULIA)
+else()
+  add_library(dace SHARED $<TARGET_OBJECTS:c_core> $<TARGET_OBJECTS:c_core_contrib> $<TARGET_OBJECTS:dacecxx>)
+endif()
+if(WITH_EIGEN)
+  target_compile_definitions(dace PUBLIC WITH_EIGEN)
+endif()
 add_library(dace_s STATIC $<TARGET_OBJECTS:c_core_s> $<TARGET_OBJECTS:c_core_contrib_s> $<TARGET_OBJECTS:dacecxx_s>)
 
 # hard code all required include directories when building from source (C++ includes, core includes, config.h include)

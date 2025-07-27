@@ -41,7 +41,7 @@
 #include <initializer_list>
 #include <cmath>
 #ifdef WITH_EIGEN
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 #endif /* WITH_EIGEN */
 
 #include "dace/dacecore.h"

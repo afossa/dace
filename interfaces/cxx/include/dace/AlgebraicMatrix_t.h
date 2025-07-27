@@ -37,8 +37,8 @@
 #include <string>
 
 #ifdef WITH_EIGEN
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Eigenvalues>
+#include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 #endif /* WITH_EIGEN */
 
 // DACE classes

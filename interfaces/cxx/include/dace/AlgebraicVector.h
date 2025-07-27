@@ -33,7 +33,7 @@
 #include <vector>
 #include <initializer_list>
 #ifdef WITH_EIGEN
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 #endif /* WITH_EIGEN */
 
 // DACE classes required for interface definition (DA.h needed for DA::getMaxOrder(), DA::getMaxVariables() default arguments)

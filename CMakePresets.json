@@ -28,8 +28,8 @@
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "$env{HOME}/.local",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/clang",
-        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/.local",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -68,8 +68,8 @@
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "$env{HOME}/.julia/dev/DACE_jll/override",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/clang",
-        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/.julia/dev/DACE_jll/override",
         "CMAKE_PREFIX_PATH": "$env{HOME}/.julia/dev/libcxxwrap_julia_jll/override",
         "CMAKE_BUILD_TYPE": "Release",
